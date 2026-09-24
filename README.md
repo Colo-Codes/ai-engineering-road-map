@@ -32,7 +32,7 @@ npm run lint
 npm run build
 ```
 
-After editing `docs/ai-engineering-roadmap-new.md`, rebuild the versioned catalogue with:
+After editing `docs/ai-engineering-roadmap.md`, rebuild the versioned catalogue with:
 
 ```bash
 npm run sync:roadmap

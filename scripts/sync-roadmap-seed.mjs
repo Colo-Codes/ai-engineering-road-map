@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 
 const root = resolve(import.meta.dirname, '..')
-const sourcePath = resolve(root, 'docs/ai-engineering-roadmap-new.md')
+const sourcePath = resolve(root, 'docs/ai-engineering-roadmap.md')
 const seedPath = resolve(root, 'data/roadmap.seed.sqlite')
 const markdown = readFileSync(sourcePath, 'utf8')
 const catalogueRevision = '7'
@@ -361,7 +361,7 @@ const sync = database.transaction(() => {
   `)
   metadata.run('schema_version', '4')
   metadata.run('content_version', createHash('sha256').update(`${catalogueRevision}\n${markdown}`).digest('hex'))
-  metadata.run('source_document', 'docs/ai-engineering-roadmap-new.md')
+  metadata.run('source_document', 'docs/ai-engineering-roadmap.md')
   database.pragma('user_version = 4')
 })
 
