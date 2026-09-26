@@ -82,6 +82,7 @@ function App() {
           onToggleExercise={data.toggleExercise}
           onOpenExercise={openExercise}
           onConfigurePath={openLibraryPath}
+          onNoteChange={data.setResourceNote}
         />}
         {view === 'exercises' && <ExercisesView
           phases={phases}
@@ -98,7 +99,7 @@ function App() {
           onProjectStatusChange={data.setCustomProjectStatus}
         />}
         {view === 'study-time' && <StudyTimeView tracker={study} phases={phases} onAddSession={() => setDialogSessionId('')} onEditSession={setDialogSessionId} />}
-        {view === 'library' && <LibraryView topics={allTopics} library={library} targetBookId={libraryTargetId} onPathChange={data.setBookPath} onCoverChange={data.setBookCover} />}
+        {view === 'library' && <LibraryView topics={allTopics} library={library} targetBookId={libraryTargetId} onPathChange={data.setBookPath} onCoverChange={data.setBookCover} onNoteChange={data.setResourceNote} />}
         {view === 'database' && <DatabaseView />}
       </main>
       {/* A session deleted elsewhere closes its dialog rather than turning it into "add a session". */}
