@@ -7,6 +7,10 @@ export type BuildStatus = 'to-build' | 'in-progress' | 'built'
 export type ProgressMap = Record<string, TopicStatus>
 export type ExerciseChecklist = Record<string, boolean>
 export type CustomProject = { id: string; title: string; note: string; status: BuildStatus }
+// Keyed "book:<id>" or "url:<address>"; see resourceKey in src/lib/library.ts.
+export type ResourceLink = { title: string; url: string }
+export type ResourceNote = { note: string; links: ResourceLink[] }
+export type ResourceNotes = Record<string, ResourceNote>
 export type StudyKind = 'theory' | 'exercise'
 export type StudyTarget =
   | { type: 'lesson'; topicId: string; kind: StudyKind; label: string }
@@ -93,6 +97,7 @@ type TopicSourceRow = { topic_id: string; source_type: TopicSourceType; content:
 type ProgressRow = { topic_id: string; status: TopicStatus }
 type ExerciseChecklistRow = { topic_id: string }
 type BookSettingRow = { book_id: string; pdf_path: string; cover_data: string }
+type ResourceNoteRow = { resource_key: string; note: string; links_json: string }
 type ProjectRow = CustomProject & { sort_order: number }
 type StudySessionRow = {
   id: string
@@ -137,7 +142,7 @@ export type DatabaseAdminData = {
   tables: DatabaseAdminTable[]
 }
 
-type DatabaseAppData = LegacyState & { phases: Phase[]; milestones: Milestone[]; books: Book[]; exerciseChecklist: ExerciseChecklist }
+type DatabaseAppData = LegacyState & { phases: Phase[]; milestones: Milestone[]; books: Book[]; exerciseChecklist: ExerciseChecklist; resourceNotes: ResourceNotes }
 
 export type RoadmapDatabase = {
   getAppData: () => DatabaseAppData
@@ -146,6 +151,7 @@ export type RoadmapDatabase = {
   replaceExerciseChecklist: (checklist: ExerciseChecklist) => void
   replaceBookSettings: (bookPaths: Record<string, string>, bookCovers: Record<string, string>) => void
   replaceCustomProjects: (projects: CustomProject[]) => void
+  replaceResourceNotes: (notes: ResourceNotes) => void
   listStudySessions: () => StudySession[]
   applyStudyTimerAction: (action: StudyTimerAction) => void
   createStudySession: (input: StudySessionInput) => void
@@ -215,6 +221,13 @@ function ensureCatalogSchema(database: Database.Database): void {
       ended_at TEXT
     );
     CREATE INDEX IF NOT EXISTS study_intervals_session ON study_intervals (session_id, started_at);
+    -- Keyed by "book:<id>" or "url:<address>" rather than foreign keys, so notes survive catalogue syncs.
+    CREATE TABLE IF NOT EXISTS resource_notes (
+      resource_key TEXT PRIMARY KEY,
+      note TEXT NOT NULL DEFAULT '',
+      links_json TEXT NOT NULL DEFAULT '[]',
+      updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
   `)
 }
 
@@ -353,7 +366,10 @@ export function createRoadmapDatabase(path: string, seedPath: string): RoadmapDa
     const customProjects = (database.prepare('SELECT id, title, note, status, sort_order FROM custom_projects ORDER BY sort_order').all() as ProjectRow[])
       .map(({ id, title, note, status }) => ({ id, title, note, status }))
 
-    return { phases, milestones, books, progress, exerciseChecklist, bookPaths, bookCovers, customProjects }
+    const resourceNotes = Object.fromEntries((database.prepare('SELECT resource_key, note, links_json FROM resource_notes').all() as ResourceNoteRow[])
+      .map((row) => [row.resource_key, { note: row.note, links: parseResourceLinks(row.links_json) }]))
+
+    return { phases, milestones, books, progress, exerciseChecklist, bookPaths, bookCovers, customProjects, resourceNotes }
   }
 
   const adminTableDefinitions = [
@@ -370,6 +386,7 @@ export function createRoadmapDatabase(path: string, seedPath: string): RoadmapDa
     { name: 'custom_projects', label: 'Custom projects', description: 'Personal projects added to the build board.' },
     { name: 'study_sessions', label: 'Study sessions', description: 'Timed study sessions and what they were for.' },
     { name: 'study_intervals', label: 'Study intervals', description: 'The active periods within each study session.' },
+    { name: 'resource_notes', label: 'Resource notes', description: 'Your notes and links for books and web resources.' },
     { name: 'catalog_metadata', label: 'Catalogue metadata', description: 'The schema and source-document versions used by this catalogue.' },
   ] as const
 
@@ -414,6 +431,19 @@ export function createRoadmapDatabase(path: string, seedPath: string): RoadmapDa
       const coverData = typeof bookCovers[bookId] === 'string' ? bookCovers[bookId] : ''
       if (pdfPath || coverData) insert.run(bookId, pdfPath, coverData)
     })
+  })
+
+  // Upserts rather than delete-and-insert, so updated_at only moves for notes that changed.
+  const replaceResourceNotes = database.transaction((notes: ResourceNotes) => {
+    const keys = Object.keys(notes).filter((key) => notes[key].note.trim() || notes[key].links.length)
+    const placeholders = keys.map(() => '?').join(', ')
+    database.prepare(keys.length ? `DELETE FROM resource_notes WHERE resource_key NOT IN (${placeholders})` : 'DELETE FROM resource_notes').run(...keys)
+    const upsert = database.prepare(`
+      INSERT INTO resource_notes (resource_key, note, links_json, updated_at) VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+      ON CONFLICT(resource_key) DO UPDATE SET note = excluded.note, links_json = excluded.links_json, updated_at = CURRENT_TIMESTAMP
+      WHERE note != excluded.note OR links_json != excluded.links_json
+    `)
+    keys.forEach((key) => upsert.run(key, notes[key].note, JSON.stringify(notes[key].links)))
   })
 
   const replaceCustomProjects = database.transaction((projects: CustomProject[]) => {
@@ -577,6 +607,7 @@ export function createRoadmapDatabase(path: string, seedPath: string): RoadmapDa
     replaceExerciseChecklist,
     replaceBookSettings,
     replaceCustomProjects,
+    replaceResourceNotes,
     listStudySessions,
     applyStudyTimerAction,
     createStudySession,
@@ -593,6 +624,27 @@ function isNonEmptyString(value: unknown): value is string {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value)
+}
+
+function isResourceLink(value: unknown): value is ResourceLink {
+  return isRecord(value) && typeof value.title === 'string' && value.title.length <= 300
+    && typeof value.url === 'string' && /^https?:\/\/\S+$/i.test(value.url) && value.url.length <= 2000
+}
+
+export function isResourceNotes(value: unknown): value is ResourceNotes {
+  return isRecord(value) && Object.entries(value).every(([key, entry]) => /^(book|url):.+/.test(key)
+    && isRecord(entry) && typeof entry.note === 'string' && entry.note.length <= 20000
+    && Array.isArray(entry.links) && entry.links.length <= 100 && entry.links.every(isResourceLink))
+}
+
+// Tolerates a hand-edited or damaged row rather than failing the whole app load.
+function parseResourceLinks(json: string): ResourceLink[] {
+  try {
+    const links: unknown = JSON.parse(json)
+    return Array.isArray(links) ? links.filter(isResourceLink) : []
+  } catch {
+    return []
+  }
 }
 
 export function isStudyTarget(value: unknown): value is StudyTarget {
