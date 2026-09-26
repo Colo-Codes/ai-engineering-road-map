@@ -23,6 +23,7 @@ npm run sync:roadmap   # rebuild data/roadmap.seed.sqlite from docs/ai-engineeri
 3. **On server start**, `server/database.ts` copies the seed to `data/roadmap.sqlite` if it's missing. When the seed's `content_version` differs, it syncs the catalogue tables (phases, topics, sources, books, chapters) into it without touching saved state.
 4. **`vite.config.ts`** mounts a plugin that serves the database at `/api/*` (`app-data`, `database`, and PUTs for `progress`, `exercise-checklist`, `book-settings`, `custom-projects`), plus `/api/open-file` to open local PDFs.
 5. **`src/api.ts`** is the typed client. `src/hooks/useRoadmapData.ts` loads everything once, exposes the state and all mutations, and saves each changed slice back. The first value after loading is never re-saved.
+6. **Study time** is row-based and works differently: `/api/study-timer` (start, pause, resume, stop, applied with the server's clock), plus `/api/study-sessions` (GET, POST) and `/api/study-sessions/:id` (PUT, DELETE). Every call returns the full session list, which `src/hooks/useStudyTracker.ts` swaps in. Sessions deliberately have no foreign keys to `topics` or `custom_projects`, and keep a `target_label` snapshot so logged time outlives catalogue syncs. The design is in `docs/superpowers/specs/2026-09-26-study-time-tracker-design.md`.
 
 Rules for this pipeline:
 
@@ -38,9 +39,9 @@ src/
   App.tsx        shell: current view, selected lesson, navigation actions
   api.ts  catalog.ts  types.ts  styles.css
   lib/           pure helpers: format, progress, scroll, topics, library, covers, legacyState
-  hooks/         useRoadmapData, useStuck, useScrollSpy, useEscapeKey
-  components/    shared UI: Banner, SideRail, Sidebar, Modal, GoalCard, CompletionToggle, BookCover, ...
-  features/      one folder per view: curriculum, exercises, library, database
+  hooks/         useRoadmapData, useStudyTracker, useNow, useStuck, useScrollSpy, useEscapeKey
+  components/    shared UI: Banner, SideRail, Sidebar, Modal, GoalCard, CompletionToggle, BookCover, StudyTracker, ...
+  features/      one folder per view: curriculum, exercises, study-time, library, database
 ```
 
 - **Reuse before writing.** Check `components/`, `lib/` and `hooks/` first, and extend an existing piece rather than adding a near-copy. Examples:
@@ -48,6 +49,7 @@ src/
   - status rules: `lessonStatus`, `progressStatus` in `lib/progress`
   - scrolling: `scrollToTop`, `scrollToSection` in `lib/scroll`
   - dialogs: `Modal` (portal, Escape to close, locks page scroll)
+  - study time: `StudyTimerControl` (start/timing button plus logged time for any target), `lessonTarget` / `projectTarget` and the aggregations in `lib/studyTime`, `formatDuration` / `formatClock` in `lib/format`, and `useNow` for live clocks (enable it only where a clock is displayed)
 - **Page headers** use `Banner`: a sticky, glassy card that shrinks and gains a shadow once content scrolls behind it. Give each page its own theme with a `className` that overrides `--banner-tint`, `--banner-ink` and `--banner-shade` (see `.banner-exercises`, `.banner-library`), plus a `decoration` icon.
 - **Right-hand navigation** uses `SideRail`, `SideRailList` and `RailLink`, shared by the lesson list and the exercises module list. Theme it the same way via `--rail-*` variables.
 - **Navigation** goes through `navigate` / `selectTopic` in `App.tsx`. They reset the scroll to the top, so don't add per-button scroll calls for view changes.
@@ -65,7 +67,7 @@ src/
 ## Styling
 
 - All styles live in one plain-CSS file, `src/styles.css`. Rule order matters: later context rules deliberately override earlier ones, so keep that file whole and check the cascade when adding rules. No CSS framework.
-- `--sticky-top` is set on `.main-content` per breakpoint. Page containers use it as their top padding so sticky headers rest where they stick.
+- The fixed `TopBar` (brand plus `PrimaryNav`) is `--topbar-height` tall. On `.main-content`, `--sticky-top` is that height plus `--sticky-gap` (20px at every size, and also the banner's bottom margin, so the space above and below a banner match). Page containers use `--sticky-top` as their top padding so sticky headers rest where they stick, just below the bar. Change the spacing through `--sticky-gap`, never `--sticky-top` directly. On phones `PrimaryNav` moves into the sidebar drawer.
 - `lucide-react` provides the icons.
 
 ## Commits

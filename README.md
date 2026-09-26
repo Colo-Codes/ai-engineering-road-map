@@ -11,6 +11,7 @@ An interactive study roadmap for moving from software engineering into applied A
 - Progress and project state persisted in SQLite
 - Per-module status filtering
 - Build milestone view with the job-application checkpoint
+- Study time tracker: an always-visible timer with pause and resume for each lesson's theory and exercise, personal projects and general study, plus a dashboard with totals, a daily chart, a per-module breakdown and an editable session log
 - Read-only database administration panel for inspecting catalog and saved state
 - Responsive navigation for desktop and mobile
 
