@@ -50,7 +50,11 @@ export type Book = {
 export type BookReference = { book: Book; locator: string }
 export type CustomProject = { id: string; title: string; note: string; status: BuildStatus }
 export type OpenStatus = { tone: 'working' | 'success' | 'error'; message: string }
-export type BookLibrary = { books: Book[]; paths: Record<string, string>; covers: Record<string, string> }
+// Keyed "book:<id>" or "url:<address>" (resourceKey helpers in lib/library).
+export type ResourceLink = { title: string; url: string }
+export type ResourceNote = { note: string; links: ResourceLink[] }
+export type ResourceNotes = Record<string, ResourceNote>
+export type BookLibrary = { books: Book[]; paths: Record<string, string>; covers: Record<string, string>; notes: ResourceNotes }
 export type AppView = 'curriculum' | 'exercises' | 'study-time' | 'library' | 'database'
 
 export type StudyKind = 'theory' | 'exercise'
@@ -74,6 +78,7 @@ export type AppData = {
   bookPaths: Record<string, string>
   bookCovers: Record<string, string>
   customProjects: CustomProject[]
+  resourceNotes: ResourceNotes
 }
 
 export type DatabaseAdminTable = {

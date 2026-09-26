@@ -1,5 +1,5 @@
 import type { LegacyState } from './lib/legacyState'
-import type { AppData, CustomProject, DatabaseAdminData, ExerciseChecklist, OpenStatus, ProgressMap, StudySession, StudySessionInput, StudyTimerAction } from './types'
+import type { AppData, CustomProject, DatabaseAdminData, ExerciseChecklist, OpenStatus, ProgressMap, ResourceNotes, StudySession, StudySessionInput, StudyTimerAction } from './types'
 
 export type BookSettings = { bookPaths: Record<string, string>; bookCovers: Record<string, string> }
 
@@ -29,6 +29,7 @@ export const saveProgress = createSaver<ProgressMap>('/api/progress', (progress)
 export const saveExerciseChecklist = createSaver<ExerciseChecklist>('/api/exercise-checklist', (exerciseChecklist) => ({ exerciseChecklist }))
 export const saveBookSettings = createSaver<BookSettings>('/api/book-settings', (settings) => settings)
 export const saveCustomProjects = createSaver<CustomProject[]>('/api/custom-projects', (customProjects) => ({ customProjects }))
+export const saveResourceNotes = createSaver<ResourceNotes>('/api/resource-notes', (resourceNotes) => ({ resourceNotes }))
 
 export function loadAppData() {
   return request<AppData>('/api/app-data')
