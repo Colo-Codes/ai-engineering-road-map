@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Cog, Plus } from 'lucide-react'
 import { Banner } from '../../components/Banner'
 import { useScrollSpy } from '../../hooks/useScrollSpy'
+import type { StudyTracker } from '../../hooks/useStudyTracker'
 import { pluralize } from '../../lib/format'
 import { scrollToSection } from '../../lib/scroll'
 import type { BuildStatus, CustomProject, ExerciseChecklist, Phase } from '../../types'
@@ -15,6 +16,7 @@ type ExercisesViewProps = {
   phases: Phase[]
   checklist: ExerciseChecklist
   customProjects: CustomProject[]
+  studyTracker: StudyTracker
   // An exercise opened from a lesson: scrolled into view and flashed once, then cleared via onHighlightEnd.
   highlightTopicId: string
   onHighlightEnd: () => void
@@ -26,7 +28,7 @@ type ExercisesViewProps = {
   onProjectStatusChange: (projectId: string, status: BuildStatus) => void
 }
 
-export function ExercisesView({ phases, checklist, customProjects, highlightTopicId, onHighlightEnd, onToggleExercise, onOpenModule, onSelectTopic, onAddProject, onRemoveProject, onProjectStatusChange }: ExercisesViewProps) {
+export function ExercisesView({ phases, checklist, customProjects, studyTracker, highlightTopicId, onHighlightEnd, onToggleExercise, onOpenModule, onSelectTopic, onAddProject, onRemoveProject, onProjectStatusChange }: ExercisesViewProps) {
   const [showProjectForm, setShowProjectForm] = useState(false)
   const groups = useMemo(() => buildExerciseGroups(phases, checklist), [phases, checklist])
   const activeId = useScrollSpy([...groups.map(({ phase }) => groupSectionId(phase.id)), CUSTOM_PROJECTS_ID])
@@ -56,10 +58,10 @@ export function ExercisesView({ phases, checklist, customProjects, highlightTopi
           {showProjectForm && <AddProjectForm onAdd={(project) => { onAddProject(project); setShowProjectForm(false) }} onClose={() => setShowProjectForm(false)} />}
 
           <div className="exercise-checklist">
-            {groups.map((group) => <ExerciseGroup key={group.phase.id} group={group} checklist={checklist} highlightTopicId={highlightTopicId} onHighlightEnd={onHighlightEnd} onToggleExercise={onToggleExercise} onOpenModule={onOpenModule} onSelectTopic={onSelectTopic} />)}
+            {groups.map((group) => <ExerciseGroup key={group.phase.id} group={group} checklist={checklist} highlightTopicId={highlightTopicId} studyTracker={studyTracker} onHighlightEnd={onHighlightEnd} onToggleExercise={onToggleExercise} onOpenModule={onOpenModule} onSelectTopic={onSelectTopic} />)}
           </div>
 
-          <CustomProjects projects={customProjects} onRemove={onRemoveProject} onStatusChange={onProjectStatusChange} />
+          <CustomProjects projects={customProjects} studyTracker={studyTracker} onRemove={onRemoveProject} onStatusChange={onProjectStatusChange} />
         </div>
         <ExerciseRail groups={groups} projectCount={customProjects.length} activeId={activeId} />
       </div>

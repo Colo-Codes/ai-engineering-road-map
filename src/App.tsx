@@ -1,12 +1,17 @@
 import { useCallback, useState } from 'react'
-import { Menu } from 'lucide-react'
 import { Sidebar } from './components/Sidebar'
+import { StudyDocumentTitle } from './components/StudyDocumentTitle'
+import { StudySessionDialog } from './components/StudySessionDialog'
+import { StudyTracker } from './components/StudyTracker'
+import { TopBar } from './components/TopBar'
 import { CurriculumView } from './features/curriculum/CurriculumView'
 import { DatabaseView } from './features/database/DatabaseView'
 import { ExercisesView } from './features/exercises/ExercisesView'
 import { LibraryView } from './features/library/LibraryView'
+import { StudyTimeView } from './features/study-time/StudyTimeView'
 import { useEscapeKey } from './hooks/useEscapeKey'
 import { useRoadmapData } from './hooks/useRoadmapData'
+import { useStudyTracker } from './hooks/useStudyTracker'
 import type { StatusFilter } from './features/curriculum/LessonBrowser'
 import { lessonStatus } from './lib/progress'
 import { scrollToTop } from './lib/scroll'
@@ -14,12 +19,15 @@ import type { AppView } from './types'
 
 function App() {
   const data = useRoadmapData()
+  const study = useStudyTracker()
   const [view, setView] = useState<AppView>('curriculum')
   const [selectedId, setSelectedId] = useState('')
   const [libraryTargetId, setLibraryTargetId] = useState('')
   const [exerciseTargetId, setExerciseTargetId] = useState('')
   const [lessonFilter, setLessonFilter] = useState<StatusFilter>('all')
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
+  // The session open in the edit dialog: an id, '' to add one by hand, or null when closed.
+  const [dialogSessionId, setDialogSessionId] = useState<string | null>(null)
   const closeMobileNav = useCallback(() => setMobileNavOpen(false), [])
   useEscapeKey(closeMobileNav)
 
@@ -49,12 +57,15 @@ function App() {
   }
   const openExercise = (topicId: string) => { navigate('exercises'); setExerciseTargetId(topicId) }
   const openLibraryPath = (bookId: string) => { navigate('library'); setLibraryTargetId(bookId) }
+  const dialogSession = dialogSessionId ? study.sessions.find((session) => session.id === dialogSessionId) : undefined
+  const studyTrackerProps = { tracker: study, phases, projects: data.customProjects, suggestedTopic: selected, onEditSession: setDialogSessionId }
 
   return (
     <div className="app-shell">
-      <Sidebar open={mobileNavOpen} view={view} phases={phases} activePhaseId={view === 'curriculum' ? phase.id : ''} completion={completion} onNavigate={navigate} onOpenModule={openModule} onResetProgress={data.resetProgress} onClose={closeMobileNav} />
+      <TopBar view={view} onNavigate={navigate} onOpenMenu={() => setMobileNavOpen(true)} />
+      <Sidebar open={mobileNavOpen} view={view} phases={phases} activePhaseId={view === 'curriculum' ? phase.id : ''} completion={completion} tracker={<StudyTracker variant="card" {...studyTrackerProps} />} onNavigate={navigate} onOpenModule={openModule} onResetProgress={data.resetProgress} onClose={closeMobileNav} />
       <main className="main-content">
-        <button className="icon-button mobile-menu" onClick={() => setMobileNavOpen(true)} aria-label="Open navigation"><Menu size={22} /></button>
+        <StudyTracker variant="pill" {...studyTrackerProps} />
         {view === 'curriculum' && <CurriculumView
           phase={phase}
           lessonFilter={lessonFilter}
@@ -65,6 +76,7 @@ function App() {
           nextId={allTopics[selectedIndex + 1]?.id}
           library={library}
           completion={completion}
+          studyTracker={study}
           onSelectTopic={selectTopic}
           onToggleReading={data.toggleReading}
           onToggleExercise={data.toggleExercise}
@@ -75,6 +87,7 @@ function App() {
           phases={phases}
           checklist={completion.exerciseChecklist}
           customProjects={data.customProjects}
+          studyTracker={study}
           highlightTopicId={exerciseTargetId}
           onHighlightEnd={() => setExerciseTargetId('')}
           onToggleExercise={data.toggleExercise}
@@ -84,9 +97,21 @@ function App() {
           onRemoveProject={data.removeCustomProject}
           onProjectStatusChange={data.setCustomProjectStatus}
         />}
+        {view === 'study-time' && <StudyTimeView tracker={study} phases={phases} onAddSession={() => setDialogSessionId('')} onEditSession={setDialogSessionId} />}
         {view === 'library' && <LibraryView topics={allTopics} library={library} targetBookId={libraryTargetId} onPathChange={data.setBookPath} onCoverChange={data.setBookCover} />}
         {view === 'database' && <DatabaseView />}
       </main>
+      {/* A session deleted elsewhere closes its dialog rather than turning it into "add a session". */}
+      {dialogSessionId !== null && (dialogSessionId === '' || dialogSession) && <StudySessionDialog
+        key={dialogSessionId}
+        session={dialogSession ?? null}
+        tracker={study}
+        phases={phases}
+        projects={data.customProjects}
+        suggestedTopic={selected}
+        onClose={() => setDialogSessionId(null)}
+      />}
+      <StudyDocumentTitle active={study.active} />
     </div>
   )
 }

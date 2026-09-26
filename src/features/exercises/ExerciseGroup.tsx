@@ -1,6 +1,9 @@
 import { ArrowRight, Circle, CircleCheck } from 'lucide-react'
 import { InlineText } from '../../components/InlineText'
+import { StudyTimerControl } from '../../components/StudyTimerControl'
+import type { StudyTracker } from '../../hooks/useStudyTracker'
 import { moduleLabel } from '../../lib/format'
+import { lessonTarget } from '../../lib/studyTime'
 import type { ExerciseChecklist } from '../../types'
 import { exerciseItemId, groupSectionId } from './exerciseGroups'
 import type { ExerciseGroupData } from './exerciseGroups'
@@ -9,13 +12,14 @@ type ExerciseGroupProps = {
   group: ExerciseGroupData
   checklist: ExerciseChecklist
   highlightTopicId: string
+  studyTracker: StudyTracker
   onHighlightEnd: () => void
   onToggleExercise: (topicId: string) => void
   onOpenModule: (phaseId: string) => void
   onSelectTopic: (topicId: string) => void
 }
 
-export function ExerciseGroup({ group: { phase, rows, done }, checklist, highlightTopicId, onHighlightEnd, onToggleExercise, onOpenModule, onSelectTopic }: ExerciseGroupProps) {
+export function ExerciseGroup({ group: { phase, rows, done }, checklist, highlightTopicId, studyTracker, onHighlightEnd, onToggleExercise, onOpenModule, onSelectTopic }: ExerciseGroupProps) {
   return (
     <section className="exercise-group" id={groupSectionId(phase.id)}>
       <header className="exercise-group-header">
@@ -39,6 +43,7 @@ export function ExerciseGroup({ group: { phase, rows, done }, checklist, highlig
               <div className="exercise-copy">
                 <button type="button" className="exercise-lesson-link" onClick={() => onSelectTopic(topic.id)}>{topic.title}</button>
                 <p><InlineText text={exercise} /></p>
+                <StudyTimerControl target={lessonTarget(topic, 'exercise')} tracker={studyTracker} />
               </div>
             </li>
           )

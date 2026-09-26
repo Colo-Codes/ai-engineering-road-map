@@ -1,4 +1,5 @@
 import Database from 'better-sqlite3'
+import { randomUUID } from 'node:crypto'
 import { copyFileSync, existsSync } from 'node:fs'
 
 export type TopicStatus = 'not-started' | 'in-progress' | 'complete'
@@ -6,6 +7,16 @@ export type BuildStatus = 'to-build' | 'in-progress' | 'built'
 export type ProgressMap = Record<string, TopicStatus>
 export type ExerciseChecklist = Record<string, boolean>
 export type CustomProject = { id: string; title: string; note: string; status: BuildStatus }
+export type StudyKind = 'theory' | 'exercise'
+export type StudyTarget =
+  | { type: 'lesson'; topicId: string; kind: StudyKind; label: string }
+  | { type: 'project'; projectId: string; label: string }
+  | { type: 'general'; label: string }
+export type StudyStatus = 'running' | 'paused' | 'finished'
+export type StudyInterval = { startedAt: string; endedAt: string | null }
+export type StudySession = { id: string; target: StudyTarget; note: string; status: StudyStatus; createdAt: string; intervals: StudyInterval[] }
+export type StudySessionInput = { target: StudyTarget; note: string; intervals: StudyInterval[] }
+export type StudyTimerAction = { action: 'start'; target: StudyTarget } | { action: 'pause' | 'resume' | 'stop' }
 type TopicSourceType = 'core' | 'supporting' | 'official' | 'optional'
 type TopicSource = { type: TopicSourceType; content: string }
 type Topic = {
@@ -83,6 +94,28 @@ type ProgressRow = { topic_id: string; status: TopicStatus }
 type ExerciseChecklistRow = { topic_id: string }
 type BookSettingRow = { book_id: string; pdf_path: string; cover_data: string }
 type ProjectRow = CustomProject & { sort_order: number }
+type StudySessionRow = {
+  id: string
+  target_type: StudyTarget['type']
+  topic_id: string | null
+  kind: StudyKind | null
+  project_id: string | null
+  target_label: string
+  note: string
+  status: StudyStatus
+  created_at: string
+}
+type StudyIntervalRow = { id: number; session_id: string; started_at: string; ended_at: string | null }
+
+// A study request the client got wrong (400), pointed at a missing session (404) or made against stale timer state (409).
+export class StudyRequestError extends Error {
+  constructor(message: string, readonly status: 400 | 404 | 409) {
+    super(message)
+  }
+}
+
+// Allows for the browser clock running slightly ahead of the server's.
+const FUTURE_TOLERANCE_MS = 5000
 
 export type LegacyState = {
   progress: ProgressMap
@@ -113,6 +146,11 @@ export type RoadmapDatabase = {
   replaceExerciseChecklist: (checklist: ExerciseChecklist) => void
   replaceBookSettings: (bookPaths: Record<string, string>, bookCovers: Record<string, string>) => void
   replaceCustomProjects: (projects: CustomProject[]) => void
+  listStudySessions: () => StudySession[]
+  applyStudyTimerAction: (action: StudyTimerAction) => void
+  createStudySession: (input: StudySessionInput) => void
+  updateStudySession: (id: string, input: StudySessionInput) => void
+  deleteStudySession: (id: string) => void
   importLegacyState: (state: LegacyState) => boolean
   close: () => void
 }
@@ -157,6 +195,26 @@ function ensureCatalogSchema(database: Database.Database): void {
       topic_id TEXT PRIMARY KEY REFERENCES topics(id) ON DELETE CASCADE,
       checked_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
+    -- No foreign keys to topics or custom_projects: catalogue syncs and project saves delete those rows,
+    -- and logged time must outlive them. target_label keeps the history readable.
+    CREATE TABLE IF NOT EXISTS study_sessions (
+      id TEXT PRIMARY KEY,
+      target_type TEXT NOT NULL CHECK (target_type IN ('lesson', 'project', 'general')),
+      topic_id TEXT,
+      kind TEXT CHECK (kind IN ('theory', 'exercise')),
+      project_id TEXT,
+      target_label TEXT NOT NULL,
+      note TEXT NOT NULL DEFAULT '',
+      status TEXT NOT NULL CHECK (status IN ('running', 'paused', 'finished')),
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+    CREATE TABLE IF NOT EXISTS study_intervals (
+      id INTEGER PRIMARY KEY,
+      session_id TEXT NOT NULL REFERENCES study_sessions(id) ON DELETE CASCADE,
+      started_at TEXT NOT NULL,
+      ended_at TEXT
+    );
+    CREATE INDEX IF NOT EXISTS study_intervals_session ON study_intervals (session_id, started_at);
   `)
 }
 
@@ -310,6 +368,8 @@ export function createRoadmapDatabase(path: string, seedPath: string): RoadmapDa
     { name: 'exercise_checklist', label: 'Exercise checklist', description: 'Exercises checked off on the Exercises page.' },
     { name: 'book_settings', label: 'Book settings', description: 'Local PDF paths and custom cover settings.' },
     { name: 'custom_projects', label: 'Custom projects', description: 'Personal projects added to the build board.' },
+    { name: 'study_sessions', label: 'Study sessions', description: 'Timed study sessions and what they were for.' },
+    { name: 'study_intervals', label: 'Study intervals', description: 'The active periods within each study session.' },
     { name: 'catalog_metadata', label: 'Catalogue metadata', description: 'The schema and source-document versions used by this catalogue.' },
   ] as const
 
@@ -362,6 +422,137 @@ export function createRoadmapDatabase(path: string, seedPath: string): RoadmapDa
     projects.forEach((project, index) => insert.run(project.id, project.title, project.note, project.status, index))
   })
 
+  const studyTargetColumns = (target: StudyTarget) => ({
+    target_type: target.type,
+    topic_id: target.type === 'lesson' ? target.topicId : null,
+    kind: target.type === 'lesson' ? target.kind : null,
+    project_id: target.type === 'project' ? target.projectId : null,
+    target_label: target.label.trim() || 'General study',
+  })
+
+  const toStudyTarget = (row: StudySessionRow): StudyTarget => {
+    if (row.target_type === 'lesson') return { type: 'lesson', topicId: row.topic_id ?? '', kind: row.kind ?? 'theory', label: row.target_label }
+    if (row.target_type === 'project') return { type: 'project', projectId: row.project_id ?? '', label: row.target_label }
+    return { type: 'general', label: row.target_label }
+  }
+
+  const listStudySessions = (): StudySession[] => {
+    const intervalsBySession = new Map<string, StudyInterval[]>()
+    const intervalRows = database.prepare('SELECT session_id, started_at, ended_at FROM study_intervals ORDER BY session_id, started_at').all() as StudyIntervalRow[]
+    intervalRows.forEach((row) => {
+      const intervals = intervalsBySession.get(row.session_id) ?? []
+      intervals.push({ startedAt: row.started_at, endedAt: row.ended_at })
+      intervalsBySession.set(row.session_id, intervals)
+    })
+    const sessions = (database.prepare('SELECT * FROM study_sessions').all() as StudySessionRow[]).map((row): StudySession => ({
+      id: row.id,
+      target: toStudyTarget(row),
+      note: row.note,
+      status: row.status,
+      createdAt: row.created_at,
+      intervals: intervalsBySession.get(row.id) ?? [],
+    }))
+    const startOf = (session: StudySession) => session.intervals[0]?.startedAt ?? session.createdAt
+    return sessions.sort((a, b) => startOf(b).localeCompare(startOf(a)))
+  }
+
+  // Parses, sorts and checks closed intervals; every timestamp comes back as an ISO string in UTC.
+  const normaliseIntervals = (intervals: StudyInterval[], now: number): StudyInterval[] => {
+    if (!intervals.length) throw new StudyRequestError('A session needs at least one interval.', 400)
+    const parsed = intervals.map(({ startedAt, endedAt }) => {
+      const start = Date.parse(startedAt)
+      const end = endedAt === null ? Number.NaN : Date.parse(endedAt)
+      if (Number.isNaN(start) || Number.isNaN(end)) throw new StudyRequestError('Every interval needs a valid start and finish time.', 400)
+      if (end <= start) throw new StudyRequestError('Each interval must end after it starts.', 400)
+      if (end > now + FUTURE_TOLERANCE_MS) throw new StudyRequestError('Intervals cannot end in the future.', 400)
+      return { start, end }
+    }).sort((a, b) => a.start - b.start)
+    parsed.forEach(({ start }, index) => {
+      if (index && start < parsed[index - 1].end) throw new StudyRequestError('Intervals cannot overlap.', 400)
+    })
+    return parsed.map(({ start, end }) => ({ startedAt: new Date(start).toISOString(), endedAt: new Date(end).toISOString() }))
+  }
+
+  const insertStudySession = (id: string, target: StudyTarget, note: string, status: StudyStatus, createdAt: string) => {
+    database.prepare(`
+      INSERT INTO study_sessions (id, target_type, topic_id, kind, project_id, target_label, note, status, created_at)
+      VALUES (@id, @target_type, @topic_id, @kind, @project_id, @target_label, @note, @status, @created_at)
+    `).run({ id, ...studyTargetColumns(target), note: note.trim(), status, created_at: createdAt })
+  }
+
+  const insertStudyInterval = (sessionId: string, startedAt: string, endedAt: string | null) => {
+    database.prepare('INSERT INTO study_intervals (session_id, started_at, ended_at) VALUES (?, ?, ?)').run(sessionId, startedAt, endedAt)
+  }
+
+  const setStudyStatus = (sessionId: string, status: StudyStatus) => {
+    database.prepare('UPDATE study_sessions SET status = ? WHERE id = ?').run(status, sessionId)
+  }
+
+  // Closes the open interval at `now`, dropping it if it would have no length. Returns how many intervals remain.
+  const closeOpenInterval = (sessionId: string, now: string): number => {
+    const open = database.prepare('SELECT id, started_at FROM study_intervals WHERE session_id = ? AND ended_at IS NULL').get(sessionId) as Pick<StudyIntervalRow, 'id' | 'started_at'> | undefined
+    if (open && open.started_at < now) database.prepare('UPDATE study_intervals SET ended_at = ? WHERE id = ?').run(now, open.id)
+    else if (open) database.prepare('DELETE FROM study_intervals WHERE id = ?').run(open.id)
+    return (database.prepare('SELECT COUNT(*) AS count FROM study_intervals WHERE session_id = ?').get(sessionId) as { count: number }).count
+  }
+
+  const deleteStudySessionRow = (sessionId: string) => database.prepare('DELETE FROM study_sessions WHERE id = ?').run(sessionId).changes
+
+  const finishStudySession = (sessionId: string, now: string) => {
+    if (closeOpenInterval(sessionId, now)) setStudyStatus(sessionId, 'finished')
+    else deleteStudySessionRow(sessionId)
+  }
+
+  // Timer actions use the server's clock, so every tab agrees and only one session is ever active.
+  const applyStudyTimerAction = database.transaction((request: StudyTimerAction) => {
+    const now = new Date().toISOString()
+    const active = database.prepare("SELECT * FROM study_sessions WHERE status != 'finished' ORDER BY created_at DESC").all() as StudySessionRow[]
+    const session = active[0]
+
+    if (request.action === 'start') {
+      active.forEach(({ id }) => finishStudySession(id, now))
+      const id = randomUUID()
+      insertStudySession(id, request.target, '', 'running', now)
+      insertStudyInterval(id, now, null)
+    } else if (request.action === 'pause') {
+      if (session?.status !== 'running') throw new StudyRequestError('No study session is running.', 409)
+      if (closeOpenInterval(session.id, now)) setStudyStatus(session.id, 'paused')
+      else deleteStudySessionRow(session.id)
+    } else if (request.action === 'resume') {
+      if (session?.status !== 'paused') throw new StudyRequestError('No study session is paused.', 409)
+      insertStudyInterval(session.id, now, null)
+      setStudyStatus(session.id, 'running')
+    } else {
+      if (!session) throw new StudyRequestError('No study session is active.', 409)
+      finishStudySession(session.id, now)
+    }
+  })
+
+  const createStudySession = database.transaction((input: StudySessionInput) => {
+    const intervals = normaliseIntervals(input.intervals, Date.now())
+    const id = randomUUID()
+    insertStudySession(id, input.target, input.note, 'finished', new Date().toISOString())
+    intervals.forEach((interval) => insertStudyInterval(id, interval.startedAt, interval.endedAt))
+  })
+
+  const updateStudySession = database.transaction((id: string, input: StudySessionInput) => {
+    const session = database.prepare('SELECT status FROM study_sessions WHERE id = ?').get(id) as Pick<StudySessionRow, 'status'> | undefined
+    if (!session) throw new StudyRequestError('That study session no longer exists.', 404)
+    // The active session's times belong to the timer until it is stopped.
+    const intervals = session.status === 'finished' ? normaliseIntervals(input.intervals, Date.now()) : null
+    database.prepare(`
+      UPDATE study_sessions SET target_type = @target_type, topic_id = @topic_id, kind = @kind, project_id = @project_id, target_label = @target_label, note = @note
+      WHERE id = @id
+    `).run({ id, ...studyTargetColumns(input.target), note: input.note.trim() })
+    if (!intervals) return
+    database.prepare('DELETE FROM study_intervals WHERE session_id = ?').run(id)
+    intervals.forEach((interval) => insertStudyInterval(id, interval.startedAt, interval.endedAt))
+  })
+
+  const deleteStudySession = (id: string) => {
+    if (!deleteStudySessionRow(id)) throw new StudyRequestError('That study session no longer exists.', 404)
+  }
+
   const importLegacyState = database.transaction((state: LegacyState) => {
     let imported = false
     if ((database.prepare('SELECT COUNT(*) AS count FROM topic_progress').get() as { count: number }).count === 0 && Object.keys(state.progress).length) {
@@ -386,9 +577,41 @@ export function createRoadmapDatabase(path: string, seedPath: string): RoadmapDa
     replaceExerciseChecklist,
     replaceBookSettings,
     replaceCustomProjects,
+    listStudySessions,
+    applyStudyTimerAction,
+    createStudySession,
+    updateStudySession,
+    deleteStudySession,
     importLegacyState,
     close: () => database.close(),
   }
+}
+
+function isNonEmptyString(value: unknown): value is string {
+  return typeof value === 'string' && value.trim().length > 0
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value)
+}
+
+export function isStudyTarget(value: unknown): value is StudyTarget {
+  if (!isRecord(value) || typeof value.label !== 'string' || value.label.length > 300) return false
+  if (value.type === 'lesson') return isNonEmptyString(value.topicId) && (value.kind === 'theory' || value.kind === 'exercise') && isNonEmptyString(value.label)
+  if (value.type === 'project') return isNonEmptyString(value.projectId) && isNonEmptyString(value.label)
+  return value.type === 'general'
+}
+
+export function isStudySessionInput(value: unknown): value is StudySessionInput {
+  return isRecord(value) && isStudyTarget(value.target) && typeof value.note === 'string' && value.note.length <= 5000
+    && Array.isArray(value.intervals) && value.intervals.length <= 500
+    && value.intervals.every((interval) => isRecord(interval) && typeof interval.startedAt === 'string' && (typeof interval.endedAt === 'string' || interval.endedAt === null))
+}
+
+export function isStudyTimerAction(value: unknown): value is StudyTimerAction {
+  if (!isRecord(value)) return false
+  if (value.action === 'start') return isStudyTarget(value.target)
+  return value.action === 'pause' || value.action === 'resume' || value.action === 'stop'
 }
 
 export function isTopicStatus(value: unknown): value is TopicStatus {

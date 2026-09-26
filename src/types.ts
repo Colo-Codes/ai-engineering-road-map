@@ -51,7 +51,19 @@ export type BookReference = { book: Book; locator: string }
 export type CustomProject = { id: string; title: string; note: string; status: BuildStatus }
 export type OpenStatus = { tone: 'working' | 'success' | 'error'; message: string }
 export type BookLibrary = { books: Book[]; paths: Record<string, string>; covers: Record<string, string> }
-export type AppView = 'curriculum' | 'exercises' | 'library' | 'database'
+export type AppView = 'curriculum' | 'exercises' | 'study-time' | 'library' | 'database'
+
+export type StudyKind = 'theory' | 'exercise'
+export type StudyTarget =
+  | { type: 'lesson'; topicId: string; kind: StudyKind; label: string }
+  | { type: 'project'; projectId: string; label: string }
+  | { type: 'general'; label: string }
+export type StudyCategory = StudyKind | 'project' | 'general'
+export type StudyStatus = 'running' | 'paused' | 'finished'
+export type StudyInterval = { startedAt: string; endedAt: string | null }
+export type StudySession = { id: string; target: StudyTarget; note: string; status: StudyStatus; createdAt: string; intervals: StudyInterval[] }
+export type StudySessionInput = { target: StudyTarget; note: string; intervals: StudyInterval[] }
+export type StudyTimerAction = { action: 'start'; target: StudyTarget } | { action: 'pause' | 'resume' | 'stop' }
 
 export type AppData = {
   phases: Phase[]

@@ -1,16 +1,20 @@
 import { Check, Trash2 } from 'lucide-react'
 import { BuildStatusSelect } from '../../components/BuildStatusSelect'
 import { InlineText } from '../../components/InlineText'
+import { StudyTimerControl } from '../../components/StudyTimerControl'
+import type { StudyTracker } from '../../hooks/useStudyTracker'
+import { projectTarget } from '../../lib/studyTime'
 import type { BuildStatus, CustomProject } from '../../types'
 import { CUSTOM_PROJECTS_ID } from './exerciseGroups'
 
 type CustomProjectsProps = {
   projects: CustomProject[]
+  studyTracker: StudyTracker
   onRemove: (projectId: string) => void
   onStatusChange: (projectId: string, status: BuildStatus) => void
 }
 
-export function CustomProjects({ projects, onRemove, onStatusChange }: CustomProjectsProps) {
+export function CustomProjects({ projects, studyTracker, onRemove, onStatusChange }: CustomProjectsProps) {
   return (
     <section className="custom-projects-section" id={CUSTOM_PROJECTS_ID}>
       <div className="custom-projects-heading"><h2>Personal projects</h2><span>{projects.length}</span></div>
@@ -21,6 +25,7 @@ export function CustomProjects({ projects, onRemove, onStatusChange }: CustomPro
             <h3>{project.title}</h3>
             {project.note && <p><InlineText text={project.note} /></p>}
             <label className="custom-status"><span>Status</span><BuildStatusSelect value={project.status} onChange={(status) => onStatusChange(project.id, status)} /></label>
+            <StudyTimerControl target={projectTarget(project)} tracker={studyTracker} />
           </article>
         ))}
       </div> : <div className="empty-build-column"><Check size={18} /><span>No personal projects added yet.</span></div>}

@@ -5,7 +5,7 @@ import { homedir } from 'node:os'
 import { extname, resolve } from 'node:path'
 import { defineConfig, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
-import { createRoadmapDatabase, isBuildStatus, isTopicStatus, type CustomProject, type ExerciseChecklist, type LegacyState, type ProgressMap } from './server/database'
+import { createRoadmapDatabase, isBuildStatus, isStudySessionInput, isStudyTimerAction, isTopicStatus, StudyRequestError, type CustomProject, type ExerciseChecklist, type LegacyState, type ProgressMap } from './server/database'
 
 function sendJson(response: ServerResponse, status: number, body: object) {
   response.statusCode = status
@@ -119,6 +119,51 @@ function localDataApi(): Plugin {
         return
       }
 
+      if (request.method === 'GET' && path === '/study-sessions') {
+        sendJson(response, 200, { sessions: roadmapDatabase.listStudySessions() })
+        return
+      }
+
+      if (request.method === 'POST' && path === '/study-timer') {
+        const payload = await readJson(request)
+        if (!isStudyTimerAction(payload)) {
+          sendJson(response, 400, { error: 'The timer action is invalid.' })
+          return
+        }
+        roadmapDatabase.applyStudyTimerAction(payload)
+        sendJson(response, 200, { sessions: roadmapDatabase.listStudySessions() })
+        return
+      }
+
+      if (request.method === 'POST' && path === '/study-sessions') {
+        const payload = await readJson(request)
+        if (!isStudySessionInput(payload)) {
+          sendJson(response, 400, { error: 'Study session data is invalid.' })
+          return
+        }
+        roadmapDatabase.createStudySession(payload)
+        sendJson(response, 200, { sessions: roadmapDatabase.listStudySessions() })
+        return
+      }
+
+      const studySessionId = path?.match(/^\/study-sessions\/([\w-]+)$/)?.[1]
+      if (studySessionId && request.method === 'PUT') {
+        const payload = await readJson(request)
+        if (!isStudySessionInput(payload)) {
+          sendJson(response, 400, { error: 'Study session data is invalid.' })
+          return
+        }
+        roadmapDatabase.updateStudySession(studySessionId, payload)
+        sendJson(response, 200, { sessions: roadmapDatabase.listStudySessions() })
+        return
+      }
+
+      if (studySessionId && request.method === 'DELETE') {
+        roadmapDatabase.deleteStudySession(studySessionId)
+        sendJson(response, 200, { sessions: roadmapDatabase.listStudySessions() })
+        return
+      }
+
       if (request.method === 'POST' && path === '/import-legacy') {
         const payload = await readJson(request) as Partial<LegacyState>
         if (!payload.progress || typeof payload.progress !== 'object' || Array.isArray(payload.progress)
@@ -135,7 +180,8 @@ function localDataApi(): Plugin {
 
       next()
     } catch (error) {
-      sendJson(response, error instanceof SyntaxError ? 400 : 500, {
+      const status = error instanceof StudyRequestError ? error.status : error instanceof SyntaxError ? 400 : 500
+      sendJson(response, status, {
         error: error instanceof Error ? error.message : 'The local database request failed.',
       })
     }
