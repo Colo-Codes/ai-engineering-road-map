@@ -4,7 +4,7 @@ import { loadDatabaseAdmin } from '../../api'
 import { pluralize } from '../../lib/format'
 import type { DatabaseAdminData } from '../../types'
 
-const STATE_TABLES = ['topic_progress', 'exercise_checklist', 'book_settings', 'custom_projects']
+const STATE_TABLES = ['topic_progress', 'exercise_checklist', 'book_settings', 'custom_projects', 'study_sessions', 'study_intervals']
 
 function formatCell(value: string | number | null) {
   if (value === null) return <span className="database-null">NULL</span>
@@ -59,7 +59,7 @@ export function DatabaseView() {
           <div><span>Database</span><strong>SQLite</strong><small>{data?.databaseFile ?? 'Loading…'}</small></div>
           <div><span>Tables</span><strong>{data?.tables.length ?? '—'}</strong><small>Catalog and app state</small></div>
           <div><span>Total rows</span><strong>{loading ? '—' : totalRows}</strong><small>Across every table</small></div>
-          <div><span>Saved state</span><strong>{loading ? '—' : stateRows}</strong><small>Progress, exercises, settings and projects</small></div>
+          <div><span>Saved state</span><strong>{loading ? '—' : stateRows}</strong><small>Progress, exercises, settings, projects and study time</small></div>
         </div>
 
         <div className="database-browser">
