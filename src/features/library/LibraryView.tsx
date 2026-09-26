@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useState } from 'react'
 import { BookOpen, ExternalLink, LibraryBig } from 'lucide-react'
 import { Banner } from '../../components/Banner'
+import { ResourceNotes } from '../../components/ResourceNotes'
 import { bookCoverSrc } from '../../lib/covers'
 import { pluralize, resourceHost } from '../../lib/format'
-import { collectBookUsage, collectWebResources } from '../../lib/library'
+import { bookResourceKey, collectBookUsage, collectWebResources, webResourceKey } from '../../lib/library'
 import { scrollToSection, scrollToTop } from '../../lib/scroll'
 import { SOURCE_LABELS } from '../../lib/topics'
-import type { BookLibrary, Topic } from '../../types'
+import type { BookLibrary, ResourceNote, Topic } from '../../types'
 import { ChapterListModal } from './ChapterListModal'
 import { LibraryBookCard } from './LibraryBookCard'
 
@@ -16,9 +17,10 @@ type LibraryViewProps = {
   targetBookId: string
   onPathChange: (bookId: string, path: string) => void
   onCoverChange: (bookId: string, cover: string) => void
+  onNoteChange: (key: string, note: ResourceNote) => void
 }
 
-export function LibraryView({ topics, library, targetBookId, onPathChange, onCoverChange }: LibraryViewProps) {
+export function LibraryView({ topics, library, targetBookId, onPathChange, onCoverChange, onNoteChange }: LibraryViewProps) {
   const [tab, setTab] = useState<'books' | 'links'>('books')
   const [chapterBookId, setChapterBookId] = useState('')
   // The view mounts fresh for each "add PDF path" request; the target only applies until the user switches tabs.
@@ -71,6 +73,8 @@ export function LibraryView({ topics, library, targetBookId, onPathChange, onCov
             coverSrc={bookCoverSrc(item.book.id, library.covers)}
             hasCustomCover={Boolean(library.covers[item.book.id])}
             isTarget={item.book.id === targetId}
+            note={library.notes[bookResourceKey(item.book.id)]}
+            onNoteChange={(note) => onNoteChange(bookResourceKey(item.book.id), note)}
             onPathChange={(path) => onPathChange(item.book.id, path)}
             onCoverChange={(cover) => onCoverChange(item.book.id, cover)}
             onShowChapters={() => setChapterBookId(item.book.id)}
@@ -78,15 +82,16 @@ export function LibraryView({ topics, library, targetBookId, onPathChange, onCov
         ))}
       </div> : <div id="resource-links-panel" className="web-resources-grid" role="tabpanel" aria-labelledby="resource-links-tab">
         {webResources.map((resource) => (
-          <a className="web-resource-card" href={resource.url} target="_blank" rel="noreferrer" key={resource.url}>
+          <article className="web-resource-card" key={resource.url}>
             <span className="web-resource-icon"><ExternalLink size={19} /></span>
-            <span className="web-resource-copy">
+            <div className="web-resource-copy">
               <small>{resourceHost(resource.url)}</small>
-              <strong>{resource.title}</strong>
+              <a className="web-resource-title" href={resource.url} target="_blank" rel="noreferrer">{resource.title}<ExternalLink size={14} /></a>
               <span>Used in {pluralize(resource.lessonIds.size, 'lesson')}</span>
               <span className="web-resource-types">{[...resource.types].map((type) => <em key={type}>{SOURCE_LABELS[type]}</em>)}</span>
-            </span>
-          </a>
+              <ResourceNotes note={library.notes[webResourceKey(resource.url)]} subject={resource.title} onChange={(note) => onNoteChange(webResourceKey(resource.url), note)} />
+            </div>
+          </article>
         ))}
       </div>}
       {chapterUsage && <ChapterListModal usage={chapterUsage} coverSrc={bookCoverSrc(chapterUsage.book.id, library.covers)} onClose={() => setChapterBookId('')} />}

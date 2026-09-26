@@ -1,22 +1,26 @@
 import { useState } from 'react'
-import { ArrowRight, FileText, FolderOpen, LibraryBig } from 'lucide-react'
+import { ArrowRight, FileText, FolderOpen, LibraryBig, NotebookPen } from 'lucide-react'
 import { openPdf } from '../../api'
 import { BookCover } from '../../components/BookCover'
 import { InlineText } from '../../components/InlineText'
 import { Modal } from '../../components/Modal'
+import { ResourceNotes } from '../../components/ResourceNotes'
 import { describeBookReference } from '../../catalog'
+import { hasResourceNote, resourceNoteSummary } from '../../lib/library'
 import { SOURCE_LABELS } from '../../lib/topics'
-import type { BookReference, OpenStatus, TopicSourceType } from '../../types'
+import type { BookReference, OpenStatus, ResourceNote, TopicSourceType } from '../../types'
 
 type ReadingBookCardProps = {
   reference: BookReference
   sourceType: TopicSourceType
   path: string
   coverSrc: string
+  note: ResourceNote | undefined
+  onNoteChange: (note: ResourceNote) => void
   onConfigurePath: (bookId: string) => void
 }
 
-export function ReadingBookCard({ reference, sourceType, path, coverSrc, onConfigurePath }: ReadingBookCardProps) {
+export function ReadingBookCard({ reference, sourceType, path, coverSrc, note, onNoteChange, onConfigurePath }: ReadingBookCardProps) {
   const [open, setOpen] = useState(false)
   const [openStatus, setOpenStatus] = useState<OpenStatus | null>(null)
   const details = describeBookReference(reference)
@@ -43,6 +47,7 @@ export function ReadingBookCard({ reference, sourceType, path, coverSrc, onConfi
           <strong>{book.title}</strong>
           <span className="reading-book-authors">{book.authors}</span>
           <span className="reading-chapter"><FileText size={18} /><span><b>{details.label}</b>{details.title !== details.label && <em>{details.title}</em>}</span></span>
+          {note && hasResourceNote(note) && <span className="resource-note-chip"><NotebookPen size={13} />{resourceNoteSummary(note)}</span>}
         </span>
       </button>
 
@@ -65,6 +70,8 @@ export function ReadingBookCard({ reference, sourceType, path, coverSrc, onConfi
             <span className="detail-label">{details.label}</span>
             <strong>{details.title}</strong>
           </div>
+
+          <ResourceNotes note={note} subject={book.title} onChange={onNoteChange} />
 
           <div className="book-modal-actions">
             {localPath

@@ -4,11 +4,12 @@ import { Check, ExternalLink, FileText, FolderOpen, ImagePlus, RotateCcw } from 
 import { openPdf } from '../../api'
 import { BookCover } from '../../components/BookCover'
 import { InlineText } from '../../components/InlineText'
+import { ResourceNotes } from '../../components/ResourceNotes'
 import { createCoverDataUrl } from '../../lib/covers'
 import { pluralize } from '../../lib/format'
 import { chaptersUsedLabel } from '../../lib/library'
 import type { BookUsage } from '../../lib/library'
-import type { OpenStatus } from '../../types'
+import type { OpenStatus, ResourceNote } from '../../types'
 
 type BookPathEditorProps = { bookId: string; path: string; onSave: (draft: string) => void; onCancel: () => void; onRemove: () => void }
 
@@ -33,12 +34,14 @@ type LibraryBookCardProps = {
   coverSrc: string
   hasCustomCover: boolean
   isTarget: boolean
+  note: ResourceNote | undefined
+  onNoteChange: (note: ResourceNote) => void
   onPathChange: (path: string) => void
   onCoverChange: (cover: string) => void
   onShowChapters: () => void
 }
 
-export function LibraryBookCard({ usage: { book, references, units }, path, coverSrc, hasCustomCover, isTarget, onPathChange, onCoverChange, onShowChapters }: LibraryBookCardProps) {
+export function LibraryBookCard({ usage: { book, references, units }, path, coverSrc, hasCustomCover, isTarget, note, onNoteChange, onPathChange, onCoverChange, onShowChapters }: LibraryBookCardProps) {
   const [editingPath, setEditingPath] = useState(isTarget)
   const [status, setStatus] = useState<OpenStatus | null>(null)
 
@@ -107,6 +110,7 @@ export function LibraryBookCard({ usage: { book, references, units }, path, cove
             </div>
           </div>}
         {status && <p className={`open-file-status ${status.tone}`} role="status">{status.message}</p>}
+        <ResourceNotes note={note} subject={book.title} onChange={onNoteChange} />
         <p className="reference-count">Referenced in {pluralize(references.length, 'lesson source')}.</p>
       </div>
     </article>
