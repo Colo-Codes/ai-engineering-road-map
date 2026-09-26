@@ -5,7 +5,7 @@ import { homedir } from 'node:os'
 import { extname, resolve } from 'node:path'
 import { defineConfig, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
-import { createRoadmapDatabase, isBuildStatus, isStudySessionInput, isStudyTimerAction, isTopicStatus, StudyRequestError, type CustomProject, type ExerciseChecklist, type LegacyState, type ProgressMap } from './server/database'
+import { createRoadmapDatabase, isBuildStatus, isResourceNotes, isStudySessionInput, isStudyTimerAction, isTopicStatus, StudyRequestError, type CustomProject, type ExerciseChecklist, type LegacyState, type ProgressMap } from './server/database'
 
 function sendJson(response: ServerResponse, status: number, body: object) {
   response.statusCode = status
@@ -103,6 +103,17 @@ function localDataApi(): Plugin {
           return
         }
         roadmapDatabase.replaceBookSettings(payload.bookPaths, payload.bookCovers)
+        sendJson(response, 200, { saved: true })
+        return
+      }
+
+      if (request.method === 'PUT' && path === '/resource-notes') {
+        const payload = await readJson(request) as { resourceNotes?: unknown }
+        if (!isResourceNotes(payload.resourceNotes)) {
+          sendJson(response, 400, { error: 'Resource notes are invalid.' })
+          return
+        }
+        roadmapDatabase.replaceResourceNotes(payload.resourceNotes)
         sendJson(response, 200, { saved: true })
         return
       }

@@ -7,7 +7,7 @@ import type { StudyTracker } from '../../hooks/useStudyTracker'
 import { lessonLabel } from '../../lib/format'
 import type { CompletionState } from '../../lib/progress'
 import { lessonTarget } from '../../lib/studyTime'
-import type { BookLibrary, Topic } from '../../types'
+import type { BookLibrary, ResourceNote, Topic } from '../../types'
 import { ReadingList } from './ReadingList'
 
 export type LessonPanelProps = {
@@ -23,9 +23,10 @@ export type LessonPanelProps = {
   onToggleExercise: (topicId: string) => void
   onOpenExercise: (topicId: string) => void
   onConfigurePath: (bookId: string) => void
+  onNoteChange: (key: string, note: ResourceNote) => void
 }
 
-export function LessonPanel({ topic, lessonIndex, previousId, nextId, library, completion, studyTracker, onSelectTopic, onToggleReading, onToggleExercise, onOpenExercise, onConfigurePath }: LessonPanelProps) {
+export function LessonPanel({ topic, lessonIndex, previousId, nextId, library, completion, studyTracker, onSelectTopic, onToggleReading, onToggleExercise, onOpenExercise, onConfigurePath, onNoteChange }: LessonPanelProps) {
   return (
     <article className="lesson-panel">
       <div className="lesson-meta"><span>{lessonLabel(lessonIndex)}</span>{topic.isExtension && <span className="extension-badge">Extension</span>}</div>
@@ -47,7 +48,7 @@ export function LessonPanel({ topic, lessonIndex, previousId, nextId, library, c
         </GoalCard>
       </div>
       <p className="goal-grid-note">Both learning outcomes and exercises must be marked completed for this lesson to count as complete.</p>
-      <ReadingList topic={topic} library={library} onConfigurePath={onConfigurePath} />
+      <ReadingList topic={topic} library={library} onConfigurePath={onConfigurePath} onNoteChange={onNoteChange} />
       {topic.readingNote && <aside className="reading-note"><Lightbulb size={20} /><div><span className="detail-label">Reading guidance</span><p><InlineText text={topic.readingNote} /></p></div></aside>}
       <div className="lesson-footer"><div className="lesson-navigation"><button disabled={!previousId} onClick={() => previousId && onSelectTopic(previousId)} aria-label="Previous lesson"><ArrowLeft size={19} /></button><button className="next-lesson" disabled={!nextId} onClick={() => nextId && onSelectTopic(nextId)}>Next lesson<ArrowRight size={18} /></button></div></div>
     </article>

@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { importLegacyState, loadAppData, saveBookSettings, saveCustomProjects, saveExerciseChecklist, saveProgress } from '../api'
+import { importLegacyState, loadAppData, saveBookSettings, saveCustomProjects, saveExerciseChecklist, saveProgress, saveResourceNotes } from '../api'
 import { clearLegacyState, readLegacyState } from '../lib/legacyState'
+import { hasResourceNote } from '../lib/library'
 import { toggleChecklistEntry } from '../lib/progress'
 import type { CompletionState } from '../lib/progress'
-import type { Book, BookLibrary, BuildStatus, CustomProject, ExerciseChecklist, Phase, ProgressMap, RoadmapTopic } from '../types'
+import type { Book, BookLibrary, BuildStatus, CustomProject, ExerciseChecklist, Phase, ProgressMap, ResourceNote, ResourceNotes, RoadmapTopic } from '../types'
 
 function useSaveOnChange<T>(enabled: boolean, value: T, save: (value: T) => Promise<unknown>) {
   const lastSaved = useRef<{ value: T } | null>(null)
@@ -24,6 +25,7 @@ export function useRoadmapData() {
   const [bookPaths, setBookPaths] = useState<Record<string, string>>({})
   const [bookCovers, setBookCovers] = useState<Record<string, string>>({})
   const [customProjects, setCustomProjects] = useState<CustomProject[]>([])
+  const [resourceNotes, setResourceNotes] = useState<ResourceNotes>({})
   const [ready, setReady] = useState(false)
   const [error, setError] = useState('')
 
@@ -45,6 +47,7 @@ export function useRoadmapData() {
         setBookPaths(data.bookPaths)
         setBookCovers(data.bookCovers)
         setCustomProjects(data.customProjects)
+        setResourceNotes(data.resourceNotes)
         setReady(true)
       } catch (loadError) {
         if (!cancelled) setError(loadError instanceof Error ? loadError.message : 'The roadmap database could not be loaded.')
@@ -59,13 +62,14 @@ export function useRoadmapData() {
   useSaveOnChange(ready, exerciseChecklist, saveExerciseChecklist)
   useSaveOnChange(ready, bookSettings, saveBookSettings)
   useSaveOnChange(ready, customProjects, saveCustomProjects)
+  useSaveOnChange(ready, resourceNotes, saveResourceNotes)
 
   const allTopics = useMemo<RoadmapTopic[]>(
     () => phases.flatMap((phase) => phase.topics.map((topic) => ({ ...topic, phaseId: phase.id }))),
     [phases],
   )
   const completion = useMemo<CompletionState>(() => ({ progress, exerciseChecklist }), [progress, exerciseChecklist])
-  const library = useMemo<BookLibrary>(() => ({ books, paths: bookPaths, covers: bookCovers }), [books, bookPaths, bookCovers])
+  const library = useMemo<BookLibrary>(() => ({ books, paths: bookPaths, covers: bookCovers, notes: resourceNotes }), [books, bookPaths, bookCovers, resourceNotes])
 
   return {
     ready,
@@ -83,6 +87,13 @@ export function useRoadmapData() {
     },
     setBookPath: (bookId: string, path: string) => setBookPaths((current) => ({ ...current, [bookId]: path })),
     setBookCover: (bookId: string, cover: string) => setBookCovers((current) => ({ ...current, [bookId]: cover })),
+    // An emptied note is removed rather than stored blank.
+    setResourceNote: (key: string, note: ResourceNote) => setResourceNotes((current) => {
+      const next = { ...current }
+      if (hasResourceNote(note)) next[key] = note
+      else delete next[key]
+      return next
+    }),
     addCustomProject: (project: CustomProject) => setCustomProjects((current) => [...current, project]),
     removeCustomProject: (projectId: string) => setCustomProjects((current) => current.filter((project) => project.id !== projectId)),
     setCustomProjectStatus: (projectId: string, status: BuildStatus) => setCustomProjects((current) => current.map((project) => project.id === projectId ? { ...project, status } : project)),

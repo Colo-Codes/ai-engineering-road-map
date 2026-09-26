@@ -1,5 +1,5 @@
 import { getBookReferenceUnits, resolveBookReferences } from '../catalog'
-import type { Book, BookReference, Topic, TopicSourceType } from '../types'
+import type { Book, BookReference, ResourceNote, Topic, TopicSourceType } from '../types'
 import { pluralize } from './format'
 import { extractWebLinks, topicSources } from './topics'
 
@@ -10,6 +10,26 @@ export type WebResource = {
   title: string
   lessonIds: Set<string>
   types: Set<TopicSourceType>
+}
+
+export const EMPTY_RESOURCE_NOTE: ResourceNote = { note: '', links: [] }
+
+// Notes are stored per resource: books by id, web resources by address.
+export function bookResourceKey(bookId: string) {
+  return `book:${bookId}`
+}
+
+export function webResourceKey(url: string) {
+  return `url:${url}`
+}
+
+export function hasResourceNote(note: ResourceNote | undefined) {
+  return Boolean(note && (note.note.trim() || note.links.length))
+}
+
+// "Notes", "2 links", "Notes · 1 link"
+export function resourceNoteSummary(note: ResourceNote) {
+  return [note.note.trim() && 'Notes', note.links.length > 0 && pluralize(note.links.length, 'link')].filter(Boolean).join(' · ')
 }
 
 export function chaptersUsedLabel(units: string[]) {
