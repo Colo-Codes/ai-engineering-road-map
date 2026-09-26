@@ -1,17 +1,12 @@
-import type { CSSProperties } from 'react'
-import { BookOpen, Check, Database, Github, LibraryBig, Milestone, RotateCcw, X } from 'lucide-react'
+import type { CSSProperties, ReactNode } from 'react'
+import { Check, RotateCcw, X } from 'lucide-react'
 import { twoDigits } from '../lib/format'
 import { countCompleteLessons, moduleStatus } from '../lib/progress'
 import type { CompletionState } from '../lib/progress'
 import type { AppView, Phase } from '../types'
+import { PrimaryNav } from './PrimaryNav'
 import { ProgressTrack } from './ProgressTrack'
 
-const NAV_ITEMS: Array<{ view: AppView; label: string; Icon: typeof BookOpen }> = [
-  { view: 'curriculum', label: 'Curriculum', Icon: BookOpen },
-  { view: 'exercises', label: 'Exercises', Icon: Milestone },
-  { view: 'library', label: 'Resource library', Icon: LibraryBig },
-  { view: 'database', label: 'Database', Icon: Database },
-]
 const MODULE_COLORS = ['#7160ed', '#ef8465', '#e3b43c', '#35b798', '#588ee1']
 
 type SidebarProps = {
@@ -20,13 +15,15 @@ type SidebarProps = {
   phases: Phase[]
   activePhaseId: string
   completion: CompletionState
+  // The study timer, pinned above the roadmap progress.
+  tracker: ReactNode
   onNavigate: (view: AppView) => void
   onOpenModule: (phaseId: string) => void
   onResetProgress: () => void
   onClose: () => void
 }
 
-export function Sidebar({ open, view, phases, activePhaseId, completion, onNavigate, onOpenModule, onResetProgress, onClose }: SidebarProps) {
+export function Sidebar({ open, view, phases, activePhaseId, completion, tracker, onNavigate, onOpenModule, onResetProgress, onClose }: SidebarProps) {
   const modules = phases.map((phase) => ({ phase, completed: countCompleteLessons(phase.topics, completion), status: moduleStatus(phase.topics, completion) }))
   const lessonCount = phases.reduce((sum, phase) => sum + phase.topics.length, 0)
   const completeCount = modules.reduce((sum, { completed }) => sum + completed, 0)
@@ -36,10 +33,9 @@ export function Sidebar({ open, view, phases, activePhaseId, completion, onNavig
     <>
       {open && <button className="nav-scrim" onClick={onClose} aria-label="Close navigation" />}
       <aside className={`sidebar ${open ? 'open' : ''}`}>
-        <div className="brand-row"><div className="brand-copy"><strong>AI Engineering Roadmap</strong><a className="brand-source" href="https://github.com/Colo-Codes/ai-engineering-road-map" target="_blank" rel="noreferrer"><Github size={14} />View source</a></div><button className="icon-button sidebar-close" onClick={onClose} aria-label="Close navigation"><X size={20} /></button></div>
-        <nav className="primary-nav" aria-label="Primary navigation">
-          {NAV_ITEMS.map(({ view: itemView, label, Icon }) => <button key={itemView} className={view === itemView ? 'active' : ''} onClick={() => onNavigate(itemView)}><Icon size={18} />{label}</button>)}
-        </nav>
+        {/* Phones only: the drawer carries the primary navigation that the top bar holds on wider screens. */}
+        <div className="sidebar-drawer-head"><strong>Menu</strong><button className="icon-button sidebar-close" onClick={onClose} aria-label="Close navigation"><X size={20} /></button></div>
+        <PrimaryNav view={view} onNavigate={onNavigate} />
         <div className="phase-nav-label"><span>Modules</span><span>{phases.length}</span></div>
         <nav className="phase-nav" aria-label="Roadmap modules">
           {modules.map(({ phase, completed, status }, index) => {
@@ -50,7 +46,7 @@ export function Sidebar({ open, view, phases, activePhaseId, completion, onNavig
             </button>
           })}
         </nav>
-        <div className="sidebar-footer"><div className="sidebar-progress"><div><span>Roadmap progress</span><strong>{Math.round(percent)}%</strong></div><ProgressTrack percent={percent} /><span className="sidebar-progress-count"><Check size={16} />{completeCount} of {lessonCount} lessons complete</span></div><button className="reset-button" onClick={() => { if (window.confirm('Reset every lesson\'s learning outcomes and exercises to not started?')) onResetProgress() }}><RotateCcw size={14} />Reset progress</button></div>
+        <div className="sidebar-footer">{tracker}<div className="sidebar-progress"><div><span>Roadmap progress</span><strong>{Math.round(percent)}%</strong></div><ProgressTrack percent={percent} /><span className="sidebar-progress-count"><Check size={16} />{completeCount} of {lessonCount} lessons complete</span></div><button className="reset-button" onClick={() => { if (window.confirm('Reset every lesson\'s learning outcomes and exercises to not started?')) onResetProgress() }}><RotateCcw size={14} />Reset progress</button></div>
       </aside>
     </>
   )
