@@ -1,5 +1,5 @@
 import type { LegacyState } from './lib/legacyState'
-import type { AppData, CustomProject, DatabaseAdminData, ExerciseChecklist, OpenStatus, ProgressMap } from './types'
+import type { AppData, CustomProject, DatabaseAdminData, ExerciseChecklist, OpenStatus, ProgressMap, StudySession, StudySessionInput, StudyTimerAction } from './types'
 
 export type BookSettings = { bookPaths: Record<string, string>; bookCovers: Record<string, string> }
 
@@ -40,6 +40,29 @@ export function loadDatabaseAdmin() {
 
 export function importLegacyState(payload: LegacyState) {
   return request<{ imported: boolean }>('/api/import-legacy', json('POST', payload))
+}
+
+// Every study request answers with the full, fresh session list.
+type StudySessions = { sessions: StudySession[] }
+
+export function loadStudySessions() {
+  return request<StudySessions>('/api/study-sessions')
+}
+
+export function studyTimerAction(action: StudyTimerAction) {
+  return request<StudySessions>('/api/study-timer', json('POST', action))
+}
+
+export function createStudySession(input: StudySessionInput) {
+  return request<StudySessions>('/api/study-sessions', json('POST', input))
+}
+
+export function updateStudySession(id: string, input: StudySessionInput) {
+  return request<StudySessions>(`/api/study-sessions/${encodeURIComponent(id)}`, json('PUT', input))
+}
+
+export function deleteStudySession(id: string) {
+  return request<StudySessions>(`/api/study-sessions/${encodeURIComponent(id)}`, { method: 'DELETE' })
 }
 
 async function requestOpenPdf(path: string) {
