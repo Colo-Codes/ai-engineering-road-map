@@ -22,7 +22,11 @@ export type StudyStatus = 'running' | 'paused' | 'finished'
 export type StudyInterval = { startedAt: string; endedAt: string | null }
 export type StudySession = { id: string; target: StudyTarget; note: string; status: StudyStatus; createdAt: string; intervals: StudyInterval[] }
 export type StudySessionInput = { target: StudyTarget; note: string; intervals: StudyInterval[] }
-export type StudyTimerAction = { action: 'start'; target: StudyTarget } | { action: 'pause' | 'resume' | 'stop' }
+export type StudyTimerAction =
+  | { action: 'start'; target: StudyTarget }
+  | { action: 'pause' | 'resume' | 'stop' }
+  // Removes an away period from the running block: it ends at `from`; a new block starts at `to`, or the session finishes when `stop`.
+  | { action: 'discard-idle'; from: string; to: string; stop: boolean }
 type TopicSourceType = 'core' | 'supporting' | 'official' | 'optional'
 type TopicSource = { type: TopicSourceType; content: string }
 type Topic = {
@@ -156,6 +160,7 @@ export type RoadmapDatabase = {
   replaceResourceNotes: (notes: ResourceNotes) => void
   listStudySessions: () => StudySession[]
   applyStudyTimerAction: (action: StudyTimerAction) => void
+  runningStudySessionId: () => string | null
   createStudySession: (input: StudySessionInput) => void
   updateStudySession: (id: string, input: StudySessionInput) => void
   deleteStudySession: (id: string) => void
@@ -557,11 +562,31 @@ export function createRoadmapDatabase(path: string, seedPath: string): RoadmapDa
       if (session?.status !== 'paused') throw new StudyRequestError('No study session is paused.', 409)
       insertStudyInterval(session.id, now, null)
       setStudyStatus(session.id, 'running')
+    } else if (request.action === 'discard-idle') {
+      if (session?.status !== 'running') throw new StudyRequestError('No study session is running.', 409)
+      const nowMs = Date.parse(now)
+      const fromMs = Date.parse(request.from)
+      const toMs = Date.parse(request.to)
+      if (Number.isNaN(fromMs) || Number.isNaN(toMs) || toMs < fromMs) throw new StudyRequestError('The away period is not valid.', 400)
+      if (toMs > nowMs + FUTURE_TOLERANCE_MS) throw new StudyRequestError('The away period cannot end in the future.', 400)
+      const open = database.prepare('SELECT started_at FROM study_intervals WHERE session_id = ? AND ended_at IS NULL').get(session.id) as Pick<StudyIntervalRow, 'started_at'> | undefined
+      if (!open) throw new StudyRequestError('The running session has no open time block.', 409)
+      // Keep the new block inside the session: never before the one it replaces, never in the future.
+      const resumeAt = new Date(Math.min(Math.max(toMs, Date.parse(open.started_at)), nowMs)).toISOString()
+      const remaining = closeOpenInterval(session.id, new Date(Math.min(fromMs, nowMs)).toISOString())
+      if (!request.stop) insertStudyInterval(session.id, resumeAt, null)
+      else if (remaining) setStudyStatus(session.id, 'finished')
+      else deleteStudySessionRow(session.id)
     } else {
       if (!session) throw new StudyRequestError('No study session is active.', 409)
       finishStudySession(session.id, now)
     }
   })
+
+  const runningStudySessionId = () => {
+    const row = database.prepare("SELECT id FROM study_sessions WHERE status = 'running' ORDER BY created_at DESC").get() as Pick<StudySessionRow, 'id'> | undefined
+    return row?.id ?? null
+  }
 
   const createStudySession = database.transaction((input: StudySessionInput) => {
     const intervals = normaliseIntervals(input.intervals, Date.now())
@@ -615,6 +640,7 @@ export function createRoadmapDatabase(path: string, seedPath: string): RoadmapDa
     replaceResourceNotes,
     listStudySessions,
     applyStudyTimerAction,
+    runningStudySessionId,
     createStudySession,
     updateStudySession,
     deleteStudySession,
@@ -668,6 +694,7 @@ export function isStudySessionInput(value: unknown): value is StudySessionInput 
 export function isStudyTimerAction(value: unknown): value is StudyTimerAction {
   if (!isRecord(value)) return false
   if (value.action === 'start') return isStudyTarget(value.target)
+  if (value.action === 'discard-idle') return typeof value.from === 'string' && typeof value.to === 'string' && typeof value.stop === 'boolean'
   return value.action === 'pause' || value.action === 'resume' || value.action === 'stop'
 }
 

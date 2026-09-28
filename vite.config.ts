@@ -5,6 +5,7 @@ import { homedir } from 'node:os'
 import { extname, resolve } from 'node:path'
 import { defineConfig, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
+import { createIdleWatch } from './server/idleWatch'
 import { createRoadmapDatabase, isBuildStatus, isExerciseChecklist, isResourceNotes, isStudySessionInput, isStudyTimerAction, isTopicStatus, StudyRequestError, type CustomProject, type LegacyState, type ProgressMap } from './server/database'
 
 function sendJson(response: ServerResponse, status: number, body: object) {
@@ -54,6 +55,12 @@ function localDataApi(): Plugin {
     resolve(process.cwd(), 'data/roadmap.sqlite'),
     resolve(process.cwd(), 'data/roadmap.seed.sqlite'),
   )
+  // Five minutes without keyboard or mouse input while a timer runs counts as time away.
+  const idleWatch = createIdleWatch({ runningSessionId: roadmapDatabase.runningStudySessionId, thresholdMs: 5 * 60 * 1000, sampleMs: 5000 })
+  const closeAll = () => {
+    idleWatch.close()
+    roadmapDatabase.close()
+  }
 
   const handleApi = async (request: IncomingMessage, response: ServerResponse, next: () => void) => {
     const path = request.url?.split('?')[0]
@@ -137,7 +144,19 @@ function localDataApi(): Plugin {
           return
         }
         roadmapDatabase.applyStudyTimerAction(payload)
+        if (payload.action === 'discard-idle') idleWatch.dismiss()
         sendJson(response, 200, { sessions: roadmapDatabase.listStudySessions() })
+        return
+      }
+
+      if (request.method === 'GET' && path === '/idle') {
+        sendJson(response, 200, idleWatch.status())
+        return
+      }
+
+      if (request.method === 'POST' && path === '/idle/dismiss') {
+        idleWatch.dismiss()
+        sendJson(response, 200, idleWatch.status())
         return
       }
 
@@ -197,11 +216,11 @@ function localDataApi(): Plugin {
     name: 'local-roadmap-database',
     configureServer(server) {
       server.middlewares.use('/api', handleApi)
-      server.httpServer?.once('close', roadmapDatabase.close)
+      server.httpServer?.once('close', closeAll)
     },
     configurePreviewServer(server) {
       server.middlewares.use('/api', handleApi)
-      server.httpServer?.once('close', roadmapDatabase.close)
+      server.httpServer?.once('close', closeAll)
     },
   }
 }
