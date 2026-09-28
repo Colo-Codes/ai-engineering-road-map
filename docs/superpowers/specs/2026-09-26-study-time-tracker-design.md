@@ -270,3 +270,23 @@ There is no test suite. Verification means:
    - The mobile pill at 375px width.
    - The Database view lists both new tables.
 3. Every test session is deleted individually through the UI afterwards. `data/roadmap.sqlite` is never reset, replaced or committed.
+
+## 10. Idle detection (added 2026-09-28)
+
+While a timer is running, the app offers to discard time when you've been away.
+
+- **Detection runs on the server** (`server/idleWatch.ts`), because browsers throttle background tabs, and the tab is usually in the background while you study in other apps.
+  - While a session is running, the server reads macOS's system-wide idle time every 5 seconds (`ioreg -c IOHIDSystem`, `HIDIdleTime`). Input in any app counts as activity.
+  - Five minutes without input starts an away period at the time of the last input. The first input afterwards ends it.
+  - A sample that arrives much later than scheduled means the computer slept, and that gap counts as away too.
+  - On other systems idle time can't be read, so only sleep gaps are detected.
+- **One away period at a time.** A later one is ignored until the pending one is answered, so active time between two absences is never discarded. Pausing, stopping or starting another session clears it.
+- **API:**
+  - `GET /api/idle` returns `{ supported, away: { sessionId, from, to } | null }`.
+  - `POST /api/idle/dismiss` clears the away period.
+  - The timer action `{ action: 'discard-idle', from, to, stop }` ends the running block at `from` and opens a new one at `to`. With `stop`, it finishes the session at `from`.
+  - `from` and `to` are clamped to the running block and to now; `to` must not be before `from` or in the future.
+- **Client:**
+  - `useIdlePrompt` polls every 10 seconds, and also when the tab regains focus, while a session is running.
+  - `IdlePrompt` shows the away period, naming the start day if it crosses midnight, with three buttons: **Discard N min**, **Keep and continue** (the same as closing) and **Discard and stop**.
+
