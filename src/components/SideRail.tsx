@@ -1,9 +1,7 @@
 import { useEffect, useRef } from 'react'
 import type { ReactNode } from 'react'
-import { Check, Circle, CircleDot } from 'lucide-react'
 import type { TopicStatus } from '../types'
-
-const STATUS_ICONS: Record<TopicStatus, typeof Circle> = { 'not-started': Circle, 'in-progress': CircleDot, complete: Check }
+import { StatusIcon } from './StatusIcon'
 
 // Sticky right-hand panel listing the sections of the current page.
 export function SideRail({ title, count, label, className = '', children }: { title: string; count: number; label: string; className?: string; children: ReactNode }) {
@@ -44,10 +42,9 @@ type RailLinkProps = {
 }
 
 export function RailLink({ title, meta, selected, onClick, status, icon, ariaCurrent = 'step' }: RailLinkProps) {
-  const StatusIcon = status ? STATUS_ICONS[status] : null
   return (
     <button className={`rail-link ${selected ? 'selected' : ''} ${status ?? ''}`} aria-current={selected ? ariaCurrent : undefined} onClick={onClick}>
-      <span className="rail-link-marker">{icon ?? (StatusIcon && <StatusIcon size={status === 'complete' ? 16 : 17} />)}</span>
+      <span className="rail-link-marker">{icon ?? (status && <StatusIcon status={status} size={status === 'complete' ? 16 : 17} />)}</span>
       <span><span className="rail-link-title">{title}</span><span className="rail-link-meta">{meta}</span></span>
     </button>
   )
