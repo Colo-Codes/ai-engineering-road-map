@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { importLegacyState, loadAppData, saveBookSettings, saveCustomProjects, saveExerciseChecklist, saveProgress, saveResourceNotes } from '../api'
 import { clearLegacyState, readLegacyState } from '../lib/legacyState'
 import { hasResourceNote } from '../lib/library'
-import { toggleChecklistEntry } from '../lib/progress'
+import { cycleStatusEntry } from '../lib/progress'
 import type { CompletionState } from '../lib/progress'
 import type { Book, BookLibrary, BuildStatus, CustomProject, ExerciseChecklist, Phase, ProgressMap, ResourceNote, ResourceNotes, RoadmapTopic } from '../types'
 
@@ -79,8 +79,9 @@ export function useRoadmapData() {
     completion,
     library,
     customProjects,
-    toggleReading: (topicId: string) => setProgress((current) => ({ ...current, [topicId]: current[topicId] === 'complete' ? 'not-started' : 'complete' })),
-    toggleExercise: (topicId: string) => setExerciseChecklist((current) => toggleChecklistEntry(current, topicId)),
+    // Each call moves the part on to its next state: not started → in progress → completed → not started.
+    toggleReading: (topicId: string) => setProgress((current) => cycleStatusEntry(current, topicId)),
+    toggleExercise: (topicId: string) => setExerciseChecklist((current) => cycleStatusEntry(current, topicId)),
     resetProgress: () => {
       setProgress({})
       setExerciseChecklist({})
