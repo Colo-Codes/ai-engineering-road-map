@@ -1,5 +1,5 @@
 import type { LegacyState } from './lib/legacyState'
-import type { AppData, CustomProject, DatabaseAdminData, ExerciseChecklist, OpenStatus, ProgressMap, ResourceNotes, StudySession, StudySessionInput, StudyTimerAction } from './types'
+import type { AppData, CustomProject, DatabaseAdminData, ExerciseChecklist, OpenStatus, ProgressMap, IdleStatus, ResourceNotes, StudySession, StudySessionInput, StudyTimerAction } from './types'
 
 export type BookSettings = { bookPaths: Record<string, string>; bookCovers: Record<string, string> }
 
@@ -48,6 +48,15 @@ type StudySessions = { sessions: StudySession[] }
 
 export function loadStudySessions() {
   return request<StudySessions>('/api/study-sessions')
+}
+
+export function loadIdleStatus() {
+  return request<IdleStatus>('/api/idle')
+}
+
+// "Keep and continue": forget the away period without changing the session.
+export function dismissIdle() {
+  return request<IdleStatus>('/api/idle/dismiss', json('POST', {}))
 }
 
 export function studyTimerAction(action: StudyTimerAction) {
