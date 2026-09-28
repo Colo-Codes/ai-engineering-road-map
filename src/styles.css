@@ -288,6 +288,9 @@ button { font-size: 14px; }
 .study-dialog-header { margin-bottom: 18px; padding-right: 40px; }
 .study-dialog-header .detail-label { color: #a3441f; }
 .study-dialog-header h2 { margin: 4px 0 0; font-size: 24px; font-weight: 600; letter-spacing: -.5px; }
+.idle-prompt { width: min(560px, 100%); }
+.idle-prompt-copy { margin: 0; color: #4c4650; font-size: 15px; line-height: 1.6; }
+.idle-prompt-copy strong { color: #25252b; font-weight: 600; }
 .study-dialog-section { min-width: 0; margin: 0 0 18px; padding: 0; border: 0; }
 .study-dialog-section legend { margin-bottom: 10px; padding: 0; color: #62616e; font-size: 14px; font-weight: 600; }
 .study-segmented { display: flex; gap: 4px; padding: 4px; background: #f1eff5; border-radius: 10px; }
