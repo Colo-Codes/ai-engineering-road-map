@@ -69,7 +69,13 @@ export type StudyStatus = 'running' | 'paused' | 'finished'
 export type StudyInterval = { startedAt: string; endedAt: string | null }
 export type StudySession = { id: string; target: StudyTarget; note: string; status: StudyStatus; createdAt: string; intervals: StudyInterval[] }
 export type StudySessionInput = { target: StudyTarget; note: string; intervals: StudyInterval[] }
-export type StudyTimerAction = { action: 'start'; target: StudyTarget } | { action: 'pause' | 'resume' | 'stop' }
+export type StudyTimerAction =
+  | { action: 'start'; target: StudyTarget }
+  | { action: 'pause' | 'resume' | 'stop' }
+  | { action: 'discard-idle'; from: string; to: string; stop: boolean }
+// A stretch without keyboard or mouse input while a timer ran, detected by the server (macOS only).
+export type AwayPeriod = { sessionId: string; from: string; to: string }
+export type IdleStatus = { supported: boolean | null; away: AwayPeriod | null }
 
 export type AppData = {
   phases: Phase[]

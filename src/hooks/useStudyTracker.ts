@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { createStudySession, deleteStudySession, loadStudySessions, studyTimerAction, updateStudySession } from '../api'
 import { loggedByTarget } from '../lib/studyTime'
-import type { StudySession, StudySessionInput, StudyTarget, StudyTimerAction } from '../types'
+import type { AwayPeriod, StudySession, StudySessionInput, StudyTarget, StudyTimerAction } from '../types'
 
 const NOTICE_MS = 6000
 
@@ -64,6 +64,13 @@ export function useStudyTracker() {
     if (result && stoppingId && result.some((session) => session.id === stoppingId)) setStoppedId(stoppingId)
   }, [active?.id, runTimer])
 
+  // Removes an away period from the running session; with `stop`, finishes it as of when you went away.
+  const discardIdle = useCallback(async ({ sessionId, from, to }: AwayPeriod, stop: boolean) => {
+    const result = await runTimer({ action: 'discard-idle', from, to, stop })
+    if (stop && result?.some((session) => session.id === sessionId)) setStoppedId(sessionId)
+    return Boolean(result)
+  }, [runTimer])
+
   // Dialog operations reject on failure so the dialog can stay open and show why.
   const create = useCallback(async (input: StudySessionInput) => setSessions((await createStudySession(input)).sessions), [])
   const update = useCallback(async (id: string, input: StudySessionInput) => setSessions((await updateStudySession(id, input)).sessions), [])
@@ -82,6 +89,7 @@ export function useStudyTracker() {
     pause,
     resume,
     stop: () => { void stop() },
+    discardIdle,
     create,
     update,
     remove,
