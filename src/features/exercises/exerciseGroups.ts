@@ -20,7 +20,7 @@ export function buildExerciseGroups(phases: Phase[], checklist: ExerciseChecklis
   return phases
     .map((phase) => {
       const rows = phase.topics.flatMap((topic) => topic.appliedExercises ? [{ topic, exercise: topic.appliedExercises }] : [])
-      return { phase, rows, done: rows.filter(({ topic }) => checklist[topic.id]).length }
+      return { phase, rows, done: rows.filter(({ topic }) => checklist[topic.id] === 'complete').length }
     })
     .filter(({ rows }) => rows.length)
 }
