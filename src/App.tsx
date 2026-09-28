@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react'
 import { Sidebar } from './components/Sidebar'
+import { IdlePrompt } from './components/IdlePrompt'
 import { StudyDocumentTitle } from './components/StudyDocumentTitle'
 import { StudySessionDialog } from './components/StudySessionDialog'
 import { StudyTracker } from './components/StudyTracker'
@@ -113,6 +114,7 @@ function App() {
         onClose={() => setDialogSessionId(null)}
       />}
       <StudyDocumentTitle active={study.active} />
+      <IdlePrompt tracker={study} />
     </div>
   )
 }
