@@ -5,7 +5,7 @@ import { homedir } from 'node:os'
 import { extname, resolve } from 'node:path'
 import { defineConfig, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
-import { createRoadmapDatabase, isBuildStatus, isResourceNotes, isStudySessionInput, isStudyTimerAction, isTopicStatus, StudyRequestError, type CustomProject, type ExerciseChecklist, type LegacyState, type ProgressMap } from './server/database'
+import { createRoadmapDatabase, isBuildStatus, isExerciseChecklist, isResourceNotes, isStudySessionInput, isStudyTimerAction, isTopicStatus, StudyRequestError, type CustomProject, type LegacyState, type ProgressMap } from './server/database'
 
 function sendJson(response: ServerResponse, status: number, body: object) {
   response.statusCode = status
@@ -38,11 +38,6 @@ function readJson(request: IncomingMessage, limit = 12 * 1024 * 1024): Promise<u
 function isStringRecord(value: unknown): value is Record<string, string> {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value)
     && Object.values(value).every((entry) => typeof entry === 'string')
-}
-
-function isBooleanRecord(value: unknown): value is Record<string, boolean> {
-  return Boolean(value) && typeof value === 'object' && !Array.isArray(value)
-    && Object.values(value).every((entry) => typeof entry === 'boolean')
 }
 
 function isCustomProjects(value: unknown): value is CustomProject[] {
@@ -87,11 +82,11 @@ function localDataApi(): Plugin {
 
       if (request.method === 'PUT' && path === '/exercise-checklist') {
         const payload = await readJson(request) as { exerciseChecklist?: unknown }
-        if (!isBooleanRecord(payload.exerciseChecklist)) {
+        if (!isExerciseChecklist(payload.exerciseChecklist)) {
           sendJson(response, 400, { error: 'Exercise checklist data is invalid.' })
           return
         }
-        roadmapDatabase.replaceExerciseChecklist(payload.exerciseChecklist as ExerciseChecklist)
+        roadmapDatabase.replaceExerciseChecklist(payload.exerciseChecklist)
         sendJson(response, 200, { saved: true })
         return
       }
