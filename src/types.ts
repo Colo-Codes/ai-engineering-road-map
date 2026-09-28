@@ -1,6 +1,8 @@
 export type TopicStatus = 'not-started' | 'in-progress' | 'complete'
 export type ProgressMap = Record<string, TopicStatus>
-export type ExerciseChecklist = Record<string, boolean>
+// "Not started" is stored as no entry, in both maps.
+export type ExerciseStatus = 'in-progress' | 'complete'
+export type ExerciseChecklist = Record<string, ExerciseStatus>
 export type BuildStatus = 'to-build' | 'in-progress' | 'built'
 export type TopicSourceType = 'core' | 'supporting' | 'official' | 'optional'
 export type TopicSource = { type: TopicSourceType; content: string }

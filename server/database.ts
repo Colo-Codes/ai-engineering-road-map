@@ -5,7 +5,9 @@ import { copyFileSync, existsSync } from 'node:fs'
 export type TopicStatus = 'not-started' | 'in-progress' | 'complete'
 export type BuildStatus = 'to-build' | 'in-progress' | 'built'
 export type ProgressMap = Record<string, TopicStatus>
-export type ExerciseChecklist = Record<string, boolean>
+// "Not started" is stored as no row.
+export type ExerciseStatus = 'in-progress' | 'complete'
+export type ExerciseChecklist = Record<string, ExerciseStatus>
 export type CustomProject = { id: string; title: string; note: string; status: BuildStatus }
 // Keyed "book:<id>" or "url:<address>"; see resourceKey in src/lib/library.ts.
 export type ResourceLink = { title: string; url: string }
@@ -95,7 +97,7 @@ type AliasRow = { book_id: string; alias: string }
 type ChapterRow = { book_id: string; chapter_key: string; title: string }
 type TopicSourceRow = { topic_id: string; source_type: TopicSourceType; content: string }
 type ProgressRow = { topic_id: string; status: TopicStatus }
-type ExerciseChecklistRow = { topic_id: string }
+type ExerciseChecklistRow = { topic_id: string; status: ExerciseStatus }
 type BookSettingRow = { book_id: string; pdf_path: string; cover_data: string }
 type ResourceNoteRow = { resource_key: string; note: string; links_json: string }
 type ProjectRow = CustomProject & { sort_order: number }
@@ -199,7 +201,8 @@ function ensureCatalogSchema(database: Database.Database): void {
     );
     CREATE TABLE IF NOT EXISTS exercise_checklist (
       topic_id TEXT PRIMARY KEY REFERENCES topics(id) ON DELETE CASCADE,
-      checked_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+      checked_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      status TEXT NOT NULL DEFAULT 'complete' CHECK (status IN ('in-progress', 'complete'))
     );
     -- No foreign keys to topics or custom_projects: catalogue syncs and project saves delete those rows,
     -- and logged time must outlive them. target_label keeps the history readable.
@@ -229,6 +232,8 @@ function ensureCatalogSchema(database: Database.Database): void {
       updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
   `)
+  // Before three-state exercises every row meant "ticked", so existing rows default to complete.
+  addColumn(database, 'exercise_checklist', 'status', "TEXT NOT NULL DEFAULT 'complete' CHECK (status IN ('in-progress', 'complete'))")
 }
 
 function catalogVersion(database: Database.Database): string {
@@ -358,8 +363,8 @@ export function createRoadmapDatabase(path: string, seedPath: string): RoadmapDa
 
     const progress = Object.fromEntries((database.prepare('SELECT topic_id, status FROM topic_progress').all() as ProgressRow[])
       .map((row) => [row.topic_id, row.status])) as ProgressMap
-    const exerciseChecklist = Object.fromEntries((database.prepare('SELECT topic_id FROM exercise_checklist').all() as ExerciseChecklistRow[])
-      .map((row) => [row.topic_id, true])) as ExerciseChecklist
+    const exerciseChecklist = Object.fromEntries((database.prepare('SELECT topic_id, status FROM exercise_checklist').all() as ExerciseChecklistRow[])
+      .map((row) => [row.topic_id, row.status])) as ExerciseChecklist
     const settings = database.prepare('SELECT book_id, pdf_path, cover_data FROM book_settings').all() as BookSettingRow[]
     const bookPaths = Object.fromEntries(settings.filter((row) => row.pdf_path).map((row) => [row.book_id, row.pdf_path]))
     const bookCovers = Object.fromEntries(settings.filter((row) => row.cover_data).map((row) => [row.book_id, row.cover_data]))
@@ -381,7 +386,7 @@ export function createRoadmapDatabase(path: string, seedPath: string): RoadmapDa
     { name: 'book_aliases', label: 'Book aliases', description: 'Short names used to match lesson references to books.' },
     { name: 'book_chapters', label: 'Book chapters', description: 'Chapter names used by lesson references.' },
     { name: 'topic_progress', label: 'Progress', description: 'Saved in-progress and completed lesson states.' },
-    { name: 'exercise_checklist', label: 'Exercise checklist', description: 'Exercises checked off on the Exercises page.' },
+    { name: 'exercise_checklist', label: 'Exercise checklist', description: 'Exercises in progress or completed.' },
     { name: 'book_settings', label: 'Book settings', description: 'Local PDF paths and custom cover settings.' },
     { name: 'custom_projects', label: 'Custom projects', description: 'Personal projects added to the build board.' },
     { name: 'study_sessions', label: 'Study sessions', description: 'Timed study sessions and what they were for.' },
@@ -416,9 +421,9 @@ export function createRoadmapDatabase(path: string, seedPath: string): RoadmapDa
 
   const replaceExerciseChecklist = database.transaction((checklist: ExerciseChecklist) => {
     database.prepare('DELETE FROM exercise_checklist').run()
-    const insert = database.prepare('INSERT INTO exercise_checklist (topic_id) VALUES (?)')
-    Object.entries(checklist).forEach(([topicId, checked]) => {
-      if (checked) insert.run(topicId)
+    const insert = database.prepare('INSERT INTO exercise_checklist (topic_id, status) VALUES (?, ?)')
+    Object.entries(checklist).forEach(([topicId, status]) => {
+      if (isExerciseStatus(status)) insert.run(topicId, status)
     })
   })
 
@@ -668,6 +673,14 @@ export function isStudyTimerAction(value: unknown): value is StudyTimerAction {
 
 export function isTopicStatus(value: unknown): value is TopicStatus {
   return value === 'not-started' || value === 'in-progress' || value === 'complete'
+}
+
+export function isExerciseStatus(value: unknown): value is ExerciseStatus {
+  return value === 'in-progress' || value === 'complete'
+}
+
+export function isExerciseChecklist(value: unknown): value is ExerciseChecklist {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value) && Object.values(value as object).every(isExerciseStatus)
 }
 
 export function isBuildStatus(value: unknown): value is BuildStatus {

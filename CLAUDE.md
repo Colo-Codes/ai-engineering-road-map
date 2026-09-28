@@ -46,7 +46,7 @@ src/
 
 - **Reuse before writing.** Check `components/`, `lib/` and `hooks/` first, and extend an existing piece rather than adding a near-copy. Examples:
   - labels: `pluralize`, `moduleLabel`, `lessonLabel` in `lib/format`
-  - status rules: `lessonStatus`, `progressStatus` in `lib/progress`
+  - status rules: `lessonStatus`, `progressStatus`, `readingStatus` / `exerciseStatus`, `STATUS_LABELS`, `nextStatus` and `cycleStatusEntry` in `lib/progress`; `StatusIcon` for the matching icons
   - scrolling: `scrollToTop`, `scrollToSection` in `lib/scroll`
   - dialogs: `Modal` (portal, Escape to close, locks page scroll)
   - resource notes: `ResourceNotes` (view plus editor for a resource's note and links), keyed with `bookResourceKey` / `webResourceKey` from `lib/library`. `InlineText` renders `[text](url)` only when you pass `links`.
@@ -59,10 +59,11 @@ src/
 
 ## Domain rules
 
-- A lesson is complete only when both its learning outcomes are marked completed (`progress[id] === 'complete'`) and its exercise is ticked (`exerciseChecklist[id]`). Either one alone means "in progress". Module and roadmap percentages count complete lessons only.
+- Learning outcomes (`progress`) and exercises (`exerciseChecklist`) each have three states: not started (no entry), `'in-progress'` and `'complete'`. `CompletionToggle` and the exercise-row checks cycle them (not started → in progress → completed → not started) through `cycleStatusEntry`. `StatusIcon` draws ○ / ◉ / ✓ for them and for the lesson rail.
+- A lesson is complete only when both parts are `'complete'`, and in progress when either part is started or completed (`lessonStatus`). "Done" counts, module and roadmap percentages count completed items only.
 - **UI wording:**
   - Say "Exercises", not "Applied exercises".
-  - Completion toggles are labelled "Completed", never "Mark as completed".
+  - Completion toggles show the current state: "Not started", "In progress" or "Completed". Never "Mark as completed".
   - Use sentence case and UK spelling.
 
 ## Styling

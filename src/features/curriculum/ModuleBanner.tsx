@@ -8,7 +8,7 @@ import type { Phase } from '../../types'
 export function ModuleBanner({ phase, completion }: { phase: Phase; completion: CompletionState }) {
   const lessonCount = phase.topics.length
   const lessonsDone = countCompleteLessons(phase.topics, completion)
-  const exercisesDone = phase.topics.filter((topic) => completion.exerciseChecklist[topic.id]).length
+  const exercisesDone = phase.topics.filter((topic) => completion.exerciseChecklist[topic.id] === 'complete').length
 
   return (
     <Banner

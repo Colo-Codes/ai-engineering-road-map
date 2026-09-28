@@ -158,8 +158,12 @@ button { font-size: 14px; }
 .goal-card p { margin: 6px 0 0; color: #49444f; font-size: 14px; line-height: 1.6; }
 .goal-card-toggle { display: inline-flex; align-items: center; align-self: flex-start; gap: 7px; margin-top: 12px; padding: 7px 12px; color: var(--goal-accent); background: #fff; border: 1px solid color-mix(in srgb, var(--goal-accent) 35%, #e4e0eb); border-radius: 9px; font-size: 13px; font-weight: 600; transition: background .15s ease, color .15s ease, border-color .15s ease; }
 .goal-card > div > .goal-card-toggle:last-child { margin-top: auto; }
+/* Wide enough for the longest state label, so cycling states doesn't shift the card's layout. */
+.goal-card-toggle { min-width: 9.4em; justify-content: center; }
 .goal-card-toggle:hover { background: color-mix(in srgb, var(--goal-accent) 8%, #fff); }
-.goal-card-toggle.done { color: #fff; background: var(--goal-accent); border-color: var(--goal-accent); }
+.goal-card-toggle.is-in-progress { background: color-mix(in srgb, var(--goal-accent) 12%, #fff); border-color: color-mix(in srgb, var(--goal-accent) 60%, #e4e0eb); }
+.goal-card-toggle.is-in-progress:hover { background: color-mix(in srgb, var(--goal-accent) 18%, #fff); }
+.goal-card-toggle.is-complete { color: #fff; background: var(--goal-accent); border-color: var(--goal-accent); }
 .goal-card-actions { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: auto; padding-top: 12px; }
 .goal-card-actions .goal-card-toggle { margin-top: 0; }
 .goal-card-link { display: inline-flex; align-items: center; gap: 5px; padding: 0; color: var(--goal-accent); background: none; border: 0; font-size: 13px; font-weight: 600; }
@@ -452,14 +456,15 @@ button { font-size: 14px; }
 .exercise-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(max(240px, calc((100% - 28px) / 3)), 1fr)); gap: 14px; margin: 0; padding: 0; list-style: none; }
 .exercise-list li { display: flex; align-items: flex-start; gap: 12px; padding: 17px; background: #fff; border: 1px solid #e4e1eb; border-radius: 13px; transition: background .15s ease, border-color .15s ease, box-shadow .15s ease, transform .15s ease; }
 .exercise-list li:hover { border-color: #beb5df; box-shadow: 0 8px 22px #372c4b0d; transform: translateY(-1px); }
-.exercise-list li.checked { background: #f2f9f5; border-color: #d3ecdf; }
+.exercise-list li.is-in-progress { border-color: #b7dfcd; }
+.exercise-list li.is-complete { background: #f2f9f5; border-color: #d3ecdf; }
 .exercise-check { flex: 0 0 auto; margin-top: 1px; color: #a49ca9; background: none; border: 0; }
-.exercise-list li.checked .exercise-check { color: #2d9a77; }
+.exercise-list li:is(.is-in-progress, .is-complete) .exercise-check { color: #2d9a77; }
 .exercise-copy { min-width: 0; }
 .exercise-lesson-link { display: block; padding: 0; margin-bottom: 4px; color: #2d2931; background: none; border: 0; font-size: 15px; font-weight: 600; text-align: left; }
 .exercise-lesson-link:hover { color: #5144b5; }
 .exercise-copy p { margin: 0; color: #6f6875; font-size: 14px; line-height: 1.55; }
-.exercise-list li.checked .exercise-copy p { color: #8b8590; text-decoration: line-through; text-decoration-color: #c3d9cd; }
+.exercise-list li.is-complete .exercise-copy p { color: #8b8590; text-decoration: line-through; text-decoration-color: #c3d9cd; }
 @keyframes exercise-flash { 0%, 100% { box-shadow: 0 0 0 0 #5144b500; } 25%, 75% { box-shadow: 0 0 0 4px #5144b559; } }
 .exercise-list li.flash-highlight { animation: exercise-flash 1.4s ease; border-color: #a99be0; }
 .custom-projects-section { margin-top: 34px; }

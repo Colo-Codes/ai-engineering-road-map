@@ -1,8 +1,10 @@
-import { ArrowRight, Circle, CircleCheck } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
 import { InlineText } from '../../components/InlineText'
+import { StatusIcon } from '../../components/StatusIcon'
 import { StudyTimerControl } from '../../components/StudyTimerControl'
 import type { StudyTracker } from '../../hooks/useStudyTracker'
 import { moduleLabel } from '../../lib/format'
+import { nextStatus, STATUS_LABELS } from '../../lib/progress'
 import { lessonTarget } from '../../lib/studyTime'
 import type { ExerciseChecklist } from '../../types'
 import { exerciseItemId, groupSectionId } from './exerciseGroups'
@@ -34,11 +36,11 @@ export function ExerciseGroup({ group: { phase, rows, done }, checklist, highlig
       </header>
       <ul className="exercise-list">
         {rows.map(({ topic, exercise }) => {
-          const checked = Boolean(checklist[topic.id])
+          const status = checklist[topic.id] ?? 'not-started'
           return (
-            <li key={topic.id} id={exerciseItemId(topic.id)} className={`${checked ? 'checked' : ''} ${topic.id === highlightTopicId ? 'flash-highlight' : ''}`} onAnimationEnd={(event) => { if (event.target === event.currentTarget) onHighlightEnd() }}>
-              <button type="button" className="exercise-check" aria-pressed={checked} onClick={() => onToggleExercise(topic.id)} aria-label={`Mark "${topic.title}" exercise as ${checked ? 'not done' : 'done'}`}>
-                {checked ? <CircleCheck size={22} /> : <Circle size={22} />}
+            <li key={topic.id} id={exerciseItemId(topic.id)} className={`is-${status} ${topic.id === highlightTopicId ? 'flash-highlight' : ''}`} onAnimationEnd={(event) => { if (event.target === event.currentTarget) onHighlightEnd() }}>
+              <button type="button" className="exercise-check" onClick={() => onToggleExercise(topic.id)} aria-label={`"${topic.title}" exercise: ${STATUS_LABELS[status]}. Select to change to ${STATUS_LABELS[nextStatus(status)]}.`} title={STATUS_LABELS[status]}>
+                <StatusIcon status={status} size={22} circled />
               </button>
               <div className="exercise-copy">
                 <button type="button" className="exercise-lesson-link" onClick={() => onSelectTopic(topic.id)}>{topic.title}</button>
