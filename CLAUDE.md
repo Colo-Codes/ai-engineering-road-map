@@ -49,6 +49,7 @@ src/
   - status rules: `lessonStatus`, `progressStatus`, `readingStatus` / `exerciseStatus`, `STATUS_LABELS`, `nextStatus` and `cycleStatusEntry` in `lib/progress`; `StatusIcon` for the matching icons
   - scrolling: `scrollToTop`, `scrollToSection` in `lib/scroll`
   - dialogs: `Modal` (portal, Escape to close, locks page scroll)
+  - lesson callouts: `LessonNote` (self-check, reading guidance)
   - resource notes: `ResourceNotes` (view plus editor for a resource's note and links), keyed with `bookResourceKey` / `webResourceKey` from `lib/library`. `InlineText` renders `[text](url)` only when you pass `links`.
   - study time: `StudyTimerControl` (start/timing button plus logged time for any target), `lessonTarget` / `projectTarget` and the aggregations in `lib/studyTime`, `formatDuration` / `formatClock` in `lib/format`, and `useNow` for live clocks (enable it only where a clock is displayed)
 - **Page headers** use `Banner`: a sticky, glassy card that shrinks and gains a shadow once content scrolls behind it. Give each page its own theme with a `className` that overrides `--banner-tint`, `--banner-ink` and `--banner-shade` (see `.banner-exercises`, `.banner-library`), plus a `decoration` icon.

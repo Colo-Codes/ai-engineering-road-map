@@ -1,7 +1,8 @@
-import { ArrowLeft, ArrowRight, Lightbulb } from 'lucide-react'
+import { ArrowLeft, ArrowRight, ClipboardCheck, Lightbulb } from 'lucide-react'
 import { CompletionToggle } from '../../components/CompletionToggle'
 import { GoalCard } from '../../components/GoalCard'
 import { InlineText } from '../../components/InlineText'
+import { LessonNote } from '../../components/LessonNote'
 import { StudyTimerControl } from '../../components/StudyTimerControl'
 import type { StudyTracker } from '../../hooks/useStudyTracker'
 import { lessonLabel } from '../../lib/format'
@@ -48,9 +49,10 @@ export function LessonPanel({ topic, lessonIndex, previousId, nextId, library, c
           <StudyTimerControl target={lessonTarget(topic, 'exercise')} tracker={studyTracker} />
         </GoalCard>
       </div>
+      {topic.selfCheck && <LessonNote variant="self-check" label="Self-check" text={topic.selfCheck} Icon={ClipboardCheck} />}
       <p className="goal-grid-note">Both learning outcomes and exercises must be completed for this lesson to count as complete.</p>
       <ReadingList topic={topic} library={library} onConfigurePath={onConfigurePath} onNoteChange={onNoteChange} />
-      {topic.readingNote && <aside className="reading-note"><Lightbulb size={20} /><div><span className="detail-label">Reading guidance</span><p><InlineText text={topic.readingNote} /></p></div></aside>}
+      {topic.readingNote && <LessonNote variant="reading" label="Reading guidance" text={topic.readingNote} Icon={Lightbulb} />}
       <div className="lesson-footer"><div className="lesson-navigation"><button disabled={!previousId} onClick={() => previousId && onSelectTopic(previousId)} aria-label="Previous lesson"><ArrowLeft size={19} /></button><button className="next-lesson" disabled={!nextId} onClick={() => nextId && onSelectTopic(nextId)}>Next lesson<ArrowRight size={18} /></button></div></div>
     </article>
   )
