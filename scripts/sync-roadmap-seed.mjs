@@ -7,7 +7,7 @@ const root = resolve(import.meta.dirname, '..')
 const sourcePath = resolve(root, 'docs/ai-engineering-roadmap.md')
 const seedPath = resolve(root, 'data/roadmap.seed.sqlite')
 const markdown = readFileSync(sourcePath, 'utf8')
-const catalogueRevision = '7'
+const catalogueRevision = '8'
 
 const phasePresentation = new Map([
   [0, ['python', '#e46a45']],
@@ -90,6 +90,7 @@ function parseRoadmap(value) {
         description: '',
         learningGoal: '',
         buildingGoal: '',
+        selfCheck: '',
         readingNote: '',
         sources: [],
       }
@@ -99,7 +100,7 @@ function parseRoadmap(value) {
 
     if (!topic) continue
 
-    const topicField = line.match(/^- \*\*(Learning goal|Learning outcomes|Building goal|Practical assessment|Applied exercises|Reading note|Reading guidance):\*\* (.+)$/)
+    const topicField = line.match(/^- \*\*(Learning goal|Learning outcomes|Building goal|Practical assessment|Applied exercises|Self-check|Reading note|Reading guidance):\*\* (.+)$/)
     if (topicField) {
       const keys = {
         'Learning goal': 'learningGoal',
@@ -107,6 +108,7 @@ function parseRoadmap(value) {
         'Building goal': 'buildingGoal',
         'Practical assessment': 'buildingGoal',
         'Applied exercises': 'buildingGoal',
+        'Self-check': 'selfCheck',
         'Reading note': 'readingNote',
         'Reading guidance': 'readingNote',
       }
@@ -150,7 +152,7 @@ function parseRoadmap(value) {
       throw new Error(`Phase ${item.number} is missing one or more goals.`)
     }
     for (const lesson of item.topics) {
-      if (!lesson.learningGoal || !lesson.buildingGoal || !lesson.sources.length) {
+      if (!lesson.learningGoal || !lesson.buildingGoal || !lesson.selfCheck || !lesson.sources.length) {
         throw new Error(`Topic ${item.number}.${lesson.number} is incomplete.`)
       }
     }
@@ -197,6 +199,7 @@ addColumn('phases', 'building_goal', "TEXT NOT NULL DEFAULT ''")
 addColumn('topics', 'description', "TEXT NOT NULL DEFAULT ''")
 addColumn('topics', 'learning_goal', "TEXT NOT NULL DEFAULT ''")
 addColumn('topics', 'reading_note', "TEXT NOT NULL DEFAULT ''")
+addColumn('topics', 'self_check', "TEXT NOT NULL DEFAULT ''")
 addColumn('topics', 'is_extension', 'INTEGER NOT NULL DEFAULT 0 CHECK (is_extension IN (0, 1))')
 addColumn('books', 'reference_url', "TEXT NOT NULL DEFAULT ''")
 addColumn('books', 'is_optional', 'INTEGER NOT NULL DEFAULT 0 CHECK (is_optional IN (0, 1))')
@@ -249,6 +252,10 @@ const extraBooks = [
     authors: 'David Foster', summary: 'A practical guide to generative models, diffusion and multimodal architectures.', color: '#9b5e4a', optional: 0, url: '',
   },
   {
+    id: 'hypermodern-python', shortTitle: 'Hypermodern Python Tooling', title: 'Hypermodern Python Tooling',
+    authors: 'Claudio Jolowicz', summary: 'A guide to modern Python tooling: environments, packaging, dependency management, testing and static typing.', color: '#3f6f9a', optional: 0, url: '',
+  },
+  {
     id: 'hands-on-context-engineering', shortTitle: 'Hands-On Context Engineering', title: 'Hands-On Context Engineering',
     authors: 'Xinye Tang and Wei Sun', summary: 'An optional guide to building context systems that can be inspected, debugged and evaluated.', color: '#4d7c74', optional: 1, url: 'https://www.oreilly.com/library/view/hands-on-context-engineering/0642572371005/',
   },
@@ -269,16 +276,16 @@ const sync = database.transaction(() => {
   const upsertTopic = database.prepare(`
     INSERT INTO topics (
       id, phase_id, title, primary_source, secondary_source, sort_order,
-      description, learning_goal, applied_exercises, reading_note, is_extension
+      description, learning_goal, applied_exercises, self_check, reading_note, is_extension
     ) VALUES (
       @id, @phaseId, @title, @primary, @secondary, @sortOrder,
-      @description, @learningGoal, @buildingGoal, @readingNote, @isExtension
+      @description, @learningGoal, @buildingGoal, @selfCheck, @readingNote, @isExtension
     )
     ON CONFLICT(id) DO UPDATE SET phase_id=excluded.phase_id, title=excluded.title,
       primary_source=excluded.primary_source, secondary_source=excluded.secondary_source,
       sort_order=excluded.sort_order, description=excluded.description,
       learning_goal=excluded.learning_goal, applied_exercises=excluded.applied_exercises,
-      reading_note=excluded.reading_note, is_extension=excluded.is_extension
+      self_check=excluded.self_check, reading_note=excluded.reading_note, is_extension=excluded.is_extension
   `)
   const insertSource = database.prepare(`
     INSERT INTO topic_sources (topic_id, source_type, content, sort_order) VALUES (?, ?, ?, ?)
@@ -337,6 +344,7 @@ const sync = database.transaction(() => {
     ['fastapi-voron', ['Building Data Science Applications with FastAPI']],
     ['build-llm', ['Build a Large Language Model']],
     ['ddia', ['Designing Data-Intensive Applications']],
+    ['islp', ['An Introduction to Statistical Learning with Applications in Python']],
   ])
   const bookRows = database.prepare('SELECT id, short_title, title FROM books').all()
   bookRows.forEach((book) => {
@@ -348,6 +356,11 @@ const sync = database.transaction(() => {
     ['aima', '27', 'Philosophy, Ethics, and Safety of AI'],
     ['generative-deep-learning', '13', 'Multimodal Models'],
     ['hands-on-ml', '16', 'Vision and Multimodal Transformers'],
+    ['hypermodern-python', '2', 'Python Environments'],
+    ['hypermodern-python', '3', 'Python Packages'],
+    ['hypermodern-python', '4', 'Dependency Management'],
+    ['hypermodern-python', '6', 'Testing with pytest'],
+    ['hypermodern-python', '10', 'Using Types for Safety and Inspection'],
   ]
   const insertChapter = database.prepare(`
     INSERT INTO book_chapters (book_id, chapter_key, title, sort_order) VALUES (?, ?, ?, ?)
