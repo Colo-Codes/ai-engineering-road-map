@@ -35,6 +35,7 @@ type Topic = {
   description: string
   learningGoal: string
   appliedExercises: string
+  selfCheck: string
   readingNote: string
   isExtension: boolean
   sources: TopicSource[]
@@ -86,6 +87,7 @@ type TopicRow = {
   description: string
   learning_goal: string
   applied_exercises: string
+  self_check: string
   reading_note: string
   is_extension: number
   sort_order: number
@@ -182,6 +184,12 @@ function ensureCatalogSchema(database: Database.Database): void {
   addColumn(database, 'topics', 'description', "TEXT NOT NULL DEFAULT ''")
   addColumn(database, 'topics', 'learning_goal', "TEXT NOT NULL DEFAULT ''")
   addColumn(database, 'topics', 'reading_note', "TEXT NOT NULL DEFAULT ''")
+  // expected_evidence was the short-lived first name of self_check; it holds only catalogue text, which the seed resyncs.
+  if (tableColumns(database, 'topics').has('expected_evidence')) {
+    if (tableColumns(database, 'topics').has('self_check')) database.exec('ALTER TABLE topics DROP COLUMN expected_evidence')
+    else database.exec('ALTER TABLE topics RENAME COLUMN expected_evidence TO self_check')
+  }
+  addColumn(database, 'topics', 'self_check', "TEXT NOT NULL DEFAULT ''")
   addColumn(database, 'topics', 'is_extension', 'INTEGER NOT NULL DEFAULT 0 CHECK (is_extension IN (0, 1))')
   addColumn(database, 'books', 'reference_url', "TEXT NOT NULL DEFAULT ''")
   addColumn(database, 'books', 'is_optional', 'INTEGER NOT NULL DEFAULT 0 CHECK (is_optional IN (0, 1))')
@@ -337,6 +345,7 @@ export function createRoadmapDatabase(path: string, seedPath: string): RoadmapDa
         description: topic.description,
         learningGoal: topic.learning_goal,
         appliedExercises: topic.applied_exercises,
+        selfCheck: topic.self_check,
         readingNote: topic.reading_note,
         isExtension: topic.is_extension === 1,
         sources: topicSourceRows.filter((source) => source.topic_id === topic.id).map((source) => ({
