@@ -219,10 +219,11 @@ button { font-size: 14px; }
 .reading-link-icon { width: 46px; height: 46px; display: grid; place-items: center; color: var(--source-accent); background: #fff; border: 1px solid color-mix(in srgb, var(--source-accent) 25%, #e9e6ed); border-radius: 10px; }
 .reading-link-host { display: block; margin-top: 5px; color: #77707e; font-size: 13px; }
 .resource-note-chip { width: fit-content; display: flex; align-items: center; gap: 5px; margin-top: 10px; padding: 3px 8px; color: color-mix(in srgb, var(--source-accent) 80%, #302b35); background: #fff; border: 1px solid color-mix(in srgb, var(--source-accent) 25%, #e9e6ed); border-radius: 7px; font-size: 12px; font-weight: 600; }
-.reading-note { display: flex; align-items: flex-start; gap: 12px; margin-top: 16px; padding: 16px 18px; color: #88671f; background: #fbf6e8; border: 1px solid #eadcb7; border-radius: 12px; }
-.reading-note > svg { flex: 0 0 auto; margin-top: 1px; }
-.reading-note .detail-label { color: #866722; }
-.reading-note p { margin: 6px 0 0; color: #665b45; font-size: 14px; line-height: 1.6; }
+.lesson-note { --note-accent: #866722; --note-ink: #665b45; --note-surface: #fbf6e8; --note-border: #eadcb7; display: flex; align-items: flex-start; gap: 12px; margin-top: 16px; padding: 16px 18px; color: var(--note-accent); background: var(--note-surface); border: 1px solid var(--note-border); border-radius: 12px; }
+.lesson-note-self-check { --note-accent: #2f6f9f; --note-ink: #435463; --note-surface: #eef5fa; --note-border: #cfe1ee; margin: 0 0 10px; }
+.lesson-note > svg { flex: 0 0 auto; margin-top: 1px; }
+.lesson-note .detail-label { color: var(--note-accent); }
+.lesson-note p { margin: 6px 0 0; color: var(--note-ink); font-size: 14px; line-height: 1.6; }
 .lesson-footer { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 15px; margin-top: 30px; padding-top: 23px; border-top: 1px solid var(--line); }
 .lesson-navigation button { display: inline-flex; align-items: center; justify-content: center; gap: 9px; min-height: 42px; padding: 9px 12px; border: 1px solid #e3e0eb; border-radius: 10px; background: white; font-size: 14px; }
 .lesson-navigation { display: flex; gap: 7px; }

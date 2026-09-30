@@ -13,6 +13,7 @@ export type Topic = {
   description?: string
   learningGoal?: string
   appliedExercises?: string
+  selfCheck?: string
   readingNote?: string
   isExtension?: boolean
   sources?: TopicSource[]
