@@ -15,15 +15,16 @@ export function resolveBookReferences(source: string, books: Book[]): BookRefere
       && candidate.index + candidate.alias.length >= match.index + match.alias.length))
     .sort((a, b) => a.index - b.index)
 
-  return matches.map((match) => ({
+  // Each book's locator runs from its title to the next book's title, or to a "; " that starts another resource.
+  return matches.map((match, index) => ({
     book: match.book,
-    locator: matches.length === 1
-      ? searchableSource.slice(match.index + match.alias.length)
-        .replace(/^\s*,\s*/, '')
-        .replace(/^\d+(?:st|nd|rd|th)\s+ed(?:ition)?\.?,?\s*/i, '')
-        .replace(/\.\s*$/, '')
-        .trim()
-      : '',
+    locator: searchableSource.slice(match.index + match.alias.length, matches[index + 1]?.index)
+      .split(/;\s+(?!Chapters?\b)/)[0]
+      .replace(/^\s*,\s*/, '')
+      .replace(/^\d+(?:st|nd|rd|th)\s+ed(?:ition)?\.?,?\s*/i, '')
+      .replace(/[\s,;.]+$/, '')
+      .replace(/^by\s.*$/i, '')
+      .trim(),
   }))
 }
 
@@ -53,13 +54,14 @@ function parseLocator({ book, locator }: BookReference): ParsedLocator | null {
     return { label: normalized, keys, fallbackTitle: normalized }
   }
 
-  const chapter = normalized.match(/Chapters?\s+(.+)/i)
-  if (chapter) {
-    const hyphenRange = chapter[1].match(/(\d+)\s*-\s*(\d+)/)
-    const keys = hyphenRange
-      ? range(Number(hyphenRange[1]), Number(hyphenRange[2]))
-      : [...chapter[1].matchAll(/\d+/g)].map((match) => match[0])
-    return { label: normalized, keys, fallbackTitle: normalized }
+  // Chapter numbers come only from "Chapter 4", "Chapters 2-4" or "Chapters 6, 8 and 11", never from section numbers or later text.
+  const chapterLists = [...normalized.matchAll(/Chapters?\s+(\d+(?:\s*(?:-|,|and|,\s*and)\s*\d+)*)/gi)].map((match) => match[1])
+  if (chapterLists.length) {
+    const keys = chapterLists.flatMap((list) => {
+      const hyphenRange = list.match(/^(\d+)\s*-\s*(\d+)$/)
+      return hyphenRange ? range(Number(hyphenRange[1]), Number(hyphenRange[2])) : [...list.matchAll(/\d+/g)].map((match) => match[0])
+    })
+    return { label: normalized, keys: [...new Set(keys)], fallbackTitle: normalized }
   }
 
   if (/classification/i.test(normalized)) {
