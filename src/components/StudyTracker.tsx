@@ -54,8 +54,9 @@ function StudyTrackerPanel({ headingId, compact, tracker, phases, suggestedTopic
   const running = active?.status === 'running'
   const now = useNow(running)
   const category = active ? studyCategory(active.target) : null
-  const suggestedIndex = phases.find((phase) => phase.id === suggestedTopic.phaseId)?.topics.findIndex((topic) => topic.id === suggestedTopic.id) ?? 0
-  const suggestedLabel = `${lessonLabel(Math.max(0, suggestedIndex))} · ${suggestedTopic.title}`
+  const suggestedPhase = phases.find((phase) => phase.id === suggestedTopic.phaseId)
+  const suggestedLesson = lessonLabel(suggestedPhase?.number ?? 0, Math.max(0, suggestedPhase?.topics.findIndex((topic) => topic.id === suggestedTopic.id) ?? 0))
+  const suggestedLabel = `${suggestedLesson} · ${suggestedTopic.title}`
   const paused = active?.status === 'paused' && <span className="study-chip">Paused</span>
 
   const pickButton = compact
@@ -92,7 +93,7 @@ function StudyTrackerPanel({ headingId, compact, tracker, phases, suggestedTopic
         </> : <>
           {compact
             ? <div className="study-tracker-row"><Timer size={16} className="study-tracker-icon" aria-hidden="true" />{startControls}</div>
-            : <><p className="study-tracker-target"><small>{lessonLabel(Math.max(0, suggestedIndex))}</small><strong>{suggestedTopic.title}</strong></p>{startControls}</>}
+            : <><p className="study-tracker-target"><small>{suggestedLesson}</small><strong>{suggestedTopic.title}</strong></p>{startControls}</>}
         </>}
         {stopped && <p className="study-tracker-notice" role="status"><Check size={14} />Logged {formatDuration(sessionDuration(stopped, now))}<span aria-hidden="true">·</span><button type="button" onClick={() => onEditStopped(stopped.id)}>Add note</button></p>}
         {tracker.error && <p className="study-tracker-error" role="alert">{tracker.error}</p>}

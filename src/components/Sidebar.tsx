@@ -1,6 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { Check, RotateCcw, X } from 'lucide-react'
-import { twoDigits } from '../lib/format'
 import { countCompleteLessons, moduleStatus } from '../lib/progress'
 import type { CompletionState } from '../lib/progress'
 import type { AppView, Phase } from '../types'
@@ -41,7 +40,7 @@ export function Sidebar({ open, view, phases, activePhaseId, completion, tracker
           {modules.map(({ phase, completed, status }, index) => {
             const active = phase.id === activePhaseId
             return <button key={phase.id} className={`${active ? 'selected ' : ''}module-${status}`} aria-label={`${phase.title}, ${status.replace(/-/g, ' ')}`} aria-current={active ? 'page' : undefined} onClick={() => onOpenModule(phase.id)} style={{ '--module-color': MODULE_COLORS[index % MODULE_COLORS.length] } as CSSProperties}>
-              <span className="phase-nav-number">{twoDigits(phase.number)}</span>
+              <span className="phase-nav-number">{phase.number}</span>
               <span className="phase-nav-copy"><span className="phase-nav-title">{phase.title}</span><span className="phase-nav-count">{completed} / {phase.topics.length} lessons</span></span>
             </button>
           })}
