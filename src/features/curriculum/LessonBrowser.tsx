@@ -30,7 +30,7 @@ export function LessonBrowser({ phase, selectedId, completion, filter, onFilterC
           <RailLink
             key={topic.id}
             title={topic.title}
-            meta={<>{lessonLabel(index)}{topic.isExtension && <em>Extension</em>}</>}
+            meta={<>{lessonLabel(phase.number, index)}{topic.isExtension && <em>Extension</em>}</>}
             status={status}
             selected={topic.id === selectedId}
             onClick={() => onSelectTopic(topic.id)}

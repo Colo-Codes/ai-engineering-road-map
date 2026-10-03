@@ -14,6 +14,7 @@ import { ReadingList } from './ReadingList'
 
 export type LessonPanelProps = {
   topic: Topic
+  phaseNumber: number
   lessonIndex: number
   previousId?: string
   nextId?: string
@@ -28,10 +29,10 @@ export type LessonPanelProps = {
   onNoteChange: (key: string, note: ResourceNote) => void
 }
 
-export function LessonPanel({ topic, lessonIndex, previousId, nextId, library, completion, studyTracker, onSelectTopic, onToggleReading, onToggleExercise, onOpenExercise, onConfigurePath, onNoteChange }: LessonPanelProps) {
+export function LessonPanel({ topic, phaseNumber, lessonIndex, previousId, nextId, library, completion, studyTracker, onSelectTopic, onToggleReading, onToggleExercise, onOpenExercise, onConfigurePath, onNoteChange }: LessonPanelProps) {
   return (
     <article className="lesson-panel">
-      <div className="lesson-meta"><span>{lessonLabel(lessonIndex)}</span>{topic.isExtension && <span className="extension-badge">Extension</span>}</div>
+      <div className="lesson-meta"><span>{lessonLabel(phaseNumber, lessonIndex)}</span>{topic.isExtension && <span className="extension-badge">Extension</span>}</div>
       <h2>{topic.title}</h2>
       {topic.description && <p className="lesson-description"><InlineText text={topic.description} /></p>}
       <div className="lesson-goal-grid">

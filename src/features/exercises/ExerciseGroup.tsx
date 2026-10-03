@@ -3,7 +3,7 @@ import { InlineText } from '../../components/InlineText'
 import { StatusIcon } from '../../components/StatusIcon'
 import { StudyTimerControl } from '../../components/StudyTimerControl'
 import type { StudyTracker } from '../../hooks/useStudyTracker'
-import { moduleLabel } from '../../lib/format'
+import { lessonLabel, moduleLabel } from '../../lib/format'
 import { nextStatus, STATUS_LABELS } from '../../lib/progress'
 import { lessonTarget } from '../../lib/studyTime'
 import type { ExerciseChecklist } from '../../types'
@@ -35,7 +35,7 @@ export function ExerciseGroup({ group: { phase, rows, done }, checklist, highlig
         </div>
       </header>
       <ul className="exercise-list">
-        {rows.map(({ topic, exercise }) => {
+        {rows.map(({ topic, index, exercise }) => {
           const status = checklist[topic.id] ?? 'not-started'
           return (
             <li key={topic.id} id={exerciseItemId(topic.id)} className={`is-${status} ${topic.id === highlightTopicId ? 'flash-highlight' : ''}`} onAnimationEnd={(event) => { if (event.target === event.currentTarget) onHighlightEnd() }}>
@@ -43,6 +43,7 @@ export function ExerciseGroup({ group: { phase, rows, done }, checklist, highlig
                 <StatusIcon status={status} size={22} circled />
               </button>
               <div className="exercise-copy">
+                <span className="detail-label exercise-lesson-number">{lessonLabel(phase.number, index)}</span>
                 <button type="button" className="exercise-lesson-link" onClick={() => onSelectTopic(topic.id)}>{topic.title}</button>
                 <p><InlineText text={exercise} /></p>
                 <StudyTimerControl target={lessonTarget(topic, 'exercise')} tracker={studyTracker} />

@@ -5,7 +5,7 @@ import { LessonPanel } from './LessonPanel'
 import type { LessonPanelProps } from './LessonPanel'
 import { ModuleBanner } from './ModuleBanner'
 
-type CurriculumViewProps = LessonPanelProps & { phase: Phase; lessonFilter: StatusFilter; onLessonFilterChange: (filter: StatusFilter) => void }
+type CurriculumViewProps = Omit<LessonPanelProps, 'phaseNumber'> & { phase: Phase; lessonFilter: StatusFilter; onLessonFilterChange: (filter: StatusFilter) => void }
 
 export function CurriculumView({ phase, lessonFilter, onLessonFilterChange, ...lesson }: CurriculumViewProps) {
   return (
@@ -13,7 +13,7 @@ export function CurriculumView({ phase, lessonFilter, onLessonFilterChange, ...l
       <div className="study-grid">
         <div className="study-main">
           <ModuleBanner phase={phase} completion={lesson.completion} />
-          <LessonPanel key={lesson.topic.id} {...lesson} />
+          <LessonPanel key={lesson.topic.id} phaseNumber={phase.number} {...lesson} />
         </div>
         <LessonBrowser phase={phase} selectedId={lesson.topic.id} completion={lesson.completion} filter={lessonFilter} onFilterChange={onLessonFilterChange} onSelectTopic={lesson.onSelectTopic} />
       </div>

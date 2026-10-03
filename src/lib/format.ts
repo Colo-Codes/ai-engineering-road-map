@@ -2,12 +2,13 @@ export function twoDigits(value: number) {
   return String(value).padStart(2, '0')
 }
 
+// Matches the roadmap document's numbering: "Module 1", and "Lesson 1.6" for its sixth lesson.
 export function moduleLabel(number: number) {
-  return `Module ${twoDigits(number)}`
+  return `Module ${number}`
 }
 
-export function lessonLabel(index: number) {
-  return `Lesson ${twoDigits(index + 1)}`
+export function lessonLabel(phaseNumber: number, index: number) {
+  return `Lesson ${phaseNumber}.${index + 1}`
 }
 
 // "1 chapter", "3 chapters"

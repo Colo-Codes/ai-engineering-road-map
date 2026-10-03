@@ -53,7 +53,7 @@ export function StudyTargetPicker({ value, phases, projects, fallbackTopic, onCh
             if (next) onChange(lessonTarget(next, value.kind))
           }}>
             {phase
-              ? phase.topics.map((topic, index) => <option key={topic.id} value={topic.id}>{lessonLabel(index)} · {topic.title}</option>)
+              ? phase.topics.map((topic, index) => <option key={topic.id} value={topic.id}>{lessonLabel(phase.number, index)} · {topic.title}</option>)
               : <option value={value.topicId}>{value.label}</option>}
           </select>
         </label>

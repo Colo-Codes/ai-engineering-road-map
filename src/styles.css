@@ -465,6 +465,7 @@ button { font-size: 14px; }
 .exercise-check { flex: 0 0 auto; margin-top: 1px; color: #a49ca9; background: none; border: 0; }
 .exercise-list li:is(.is-in-progress, .is-complete) .exercise-check { color: #2d9a77; }
 .exercise-copy { min-width: 0; }
+.exercise-lesson-number { margin-bottom: 3px; font-size: 11px; }
 .exercise-lesson-link { display: block; padding: 0; margin-bottom: 4px; color: #2d2931; background: none; border: 0; font-size: 15px; font-weight: 600; text-align: left; }
 .exercise-lesson-link:hover { color: #5144b5; }
 .exercise-copy p { margin: 0; color: #6f6875; font-size: 14px; line-height: 1.55; }

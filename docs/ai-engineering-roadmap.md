@@ -56,7 +56,7 @@ The context and MCP lessons include two optional books for deeper study:
 - [_Hands-On Context Engineering_](https://www.oreilly.com/library/view/hands-on-context-engineering/0642572371005/) by Xinye Tang and Wei Sun
 - [_Learn Model Context Protocol with Python_](https://www.oreilly.com/library/view/learn-model-context/9781806103232/) by Christoffer Noring
 
-## Module 0: Python for an experienced engineer
+## Module 0: Advanced Python programming
 
 **Module aim:** Make Python feel natural enough that it never obstructs the AI work.
 
@@ -64,7 +64,7 @@ The context and MCP lessons include two optional books for deeper study:
 
 **Module practical assessment:** Build a typed command-line API client with demonstrated behaviour checks. It should demonstrate clean Python structure, data transformation, file persistence, concurrent I/O and graceful failure handling without relying on an LLM. Add the formal automated test suite in lesson 1.6.
 
-### 0.1 Environment, virtual environments and packages
+### 0.1 Python environments and dependency management
 
 - **Learning outcomes:** Explain how interpreters, virtual environments and dependency files isolate a project and make its execution reproducible.
 - **Applied exercises:** Initialise a small application with `uv`, add one runtime dependency and one development dependency, and commit `pyproject.toml`, `uv.lock`, a supported Python version and a README. Do not commit `.venv`. In a fresh checkout, run `uv sync --locked` and the documented `uv run` command to verify that the project can be recreated without machine-specific setup.
@@ -110,7 +110,7 @@ The context and MCP lessons include two optional books for deeper study:
 - **Required reading:** _Python Crash Course_, 3rd ed., Chapter 8, "Functions"; _Hypermodern Python Tooling_, Chapter 3, "Python Packages", sections on modules, package layout and `pyproject.toml`.
 - **Technical references:** [`uv` project structure](https://docs.astral.sh/uv/concepts/projects/layout/).
 
-### 0.5 Classes and Python OOP
+### 0.5 Object-oriented programming in Python
 
 - **Learning outcomes:** Decide when a Python class adds value, and explain composition, inheritance and the responsibilities of a useful abstraction.
 - **Applied exercises:** Build a record class with instance attributes and methods, plus a service that contains a data-source instance. Create two interchangeable data sources that return different in-memory examples through the same method. Show composition and one small inheritance example, explaining when each is useful. Add file I/O in lesson 0.6 and `Protocol` typing in 0.7.
@@ -127,7 +127,7 @@ The context and MCP lessons include two optional books for deeper study:
 - **Required reading:** _Python Crash Course_, 3rd ed., Chapter 10, "Files and Exceptions".
 - **Technical references:** [Python tutorial, errors and exceptions](https://docs.python.org/3/tutorial/errors.html) for custom exceptions and cleanup.
 
-### 0.7 Type hints
+### 0.7 Type hints and static analysis
 
 - **Learning outcomes:** Explain what type hints can and cannot guarantee, and use unions, optional values, collections and typed return values correctly.
 - **Applied exercises:** Annotate the public functions and data-source interface with collection types, optional values, unions and a small `Protocol`. Run the chosen static checker, deliberately introduce one incompatible call so it reports an error, then fix it. Show separately that annotations do not perform runtime validation. Add a small `Protocol` for the two data sources from 0.5, type the public boundaries, and run the chosen checker with `uv run`.
@@ -136,7 +136,7 @@ The context and MCP lessons include two optional books for deeper study:
 - **Required reading:** _Hypermodern Python Tooling_, Chapter 10, "Using Types for Safety and Inspection", through protocols and static checking with mypy.
 - **Technical references:** [Python typing documentation](https://docs.python.org/3/library/typing.html) and the [Python Developer Tooling Handbook type-checking guide](https://pydevtools.com/handbook/topics/type-checking/). Use one checker consistently, either mypy as in the book or the checker from the handbook tutorial.
 
-### 0.8 Generators and iterators
+### 0.8 Iterators, generators and lazy evaluation
 
 - **Learning outcomes:** Explain lazy evaluation, the iteration protocol and the memory tradeoffs between generators and materialised collections.
 - **Applied exercises:** Write a generator that yields one record at a time from a local JSON Lines file, reusing file handling from 0.6. Consume only the first few records, then iterate over the rest. Compare this with building a list of all records and explain when reading and allocation happen. Network pagination and memory-profiler tooling are not required.
@@ -145,7 +145,7 @@ The context and MCP lessons include two optional books for deeper study:
 - **Required reading:** [Python tutorial, iterators and generators](https://docs.python.org/3/tutorial/classes.html#iterators) and [generator expressions](https://docs.python.org/3/tutorial/classes.html#generator-expressions).
 - **Recommended reading:** _Hypermodern Python Tooling_, Chapter 10, section on annotating iterators and generators.
 
-### 0.9 Async I/O and `async/await`
+### 0.9 Asynchronous I/O and concurrency
 
 - **Learning outcomes:** Explain the event loop, coroutines and tasks, including the difference between concurrency, parallelism and blocking work.
 - **Applied exercises:** Build an HTTPX API aggregator using coroutines, tasks and a semaphore. Run the same request list sequentially and with a fixed concurrency bound; record elapsed time and successful/failed requests. Demonstrate a timeout and an unsuccessful HTTP status without losing the successful results. Explain why blocking work would obstruct the event loop. Use a small public or locally mocked HTTP endpoint. Cover an HTTP timeout and a failed response; use the same request list for sequential execution and execution with a fixed concurrency bound.
@@ -154,7 +154,7 @@ The context and MCP lessons include two optional books for deeper study:
 - **Required reading:** [Python `asyncio` overview](https://docs.python.org/3/library/asyncio.html), [coroutines and tasks](https://docs.python.org/3/library/asyncio-task.html), and [synchronisation primitives](https://docs.python.org/3/library/asyncio-sync.html), especially semaphores.
 - **Technical references:** [HTTPX async support](https://www.python-httpx.org/async/) and [timeouts](https://www.python-httpx.org/advanced/timeouts/). These teach the client required for the aggregator.
 
-## Module 1: Production-minded FastAPI
+## Module 1: API engineering with FastAPI
 
 **Module aim:** Turn Python fluency into a backend foundation you can reuse in every AI product.
 
@@ -162,7 +162,7 @@ The context and MCP lessons include two optional books for deeper study:
 
 **Module practical assessment:** Build a containerised FastAPI service with typed schemas, PostgreSQL persistence, authentication and async tests. It should demonstrate modular boundaries and production-ready backend habits.
 
-### 1.1 REST APIs and FastAPI
+### 1.1 REST API design with FastAPI
 
 - **Learning outcomes:** Explain how HTTP methods, status codes, routing, validation and the FastAPI request lifecycle combine to form a well-designed REST API.
 - **Applied exercises:** Turn the Module 0 utility into a modular FastAPI service with routers, request bodies, query and path parameters, response models and appropriate error responses. It should demonstrate sound HTTP semantics and thin route handlers.
@@ -171,7 +171,7 @@ The context and MCP lessons include two optional books for deeper study:
 - **Required reading:** [FastAPI tutorial](https://fastapi.tiangolo.com/tutorial/), sections "First Steps", "Path Parameters", "Query Parameters", "Request Body", "Response Model", "Handling Errors", "Path Operation Configuration", and "Bigger Applications - Multiple Files".
 - **Recommended reading:** _Building Data Science Applications with FastAPI_, 2nd ed., Chapter 3, "Developing a RESTful API with FastAPI", for conceptual explanation only. Build with the current tutorial's APIs.
 
-### 1.2 Pydantic and structured data
+### 1.2 Data validation with Pydantic
 
 - **Learning outcomes:** Explain how schemas validate, transform, serialise and protect data at application boundaries.
 - **Applied exercises:** Build separate request, domain and response models with nested values, enums and custom validation. They should demonstrate that invalid data cannot silently enter or leave the application.
@@ -189,7 +189,7 @@ The context and MCP lessons include two optional books for deeper study:
 - **Required reading:** [FastAPI dependencies](https://fastapi.tiangolo.com/tutorial/dependencies/), [dependencies with `yield`](https://fastapi.tiangolo.com/tutorial/dependencies/dependencies-with-yield/) and [overriding dependencies in tests](https://fastapi.tiangolo.com/advanced/testing-dependencies/).
 - **Recommended reading:** _Building Data Science Applications with FastAPI_, 2nd ed., Chapter 5, "Dependency Injection in FastAPI", for explanation.
 
-### 1.4 Async databases and persistence
+### 1.4 Asynchronous persistence and database access
 
 - **Learning outcomes:** Explain async database sessions, transactions, migrations and repository boundaries, including where consistency can fail.
 - **Applied exercises:** Add PostgreSQL, async SQLAlchemy, migrations and transactional CRUD operations. It should demonstrate safe session handling, durable state and persistence logic isolated from HTTP concerns.
@@ -208,7 +208,7 @@ The context and MCP lessons include two optional books for deeper study:
 - **Required reading:** [FastAPI security tutorial](https://fastapi.tiangolo.com/tutorial/security/), particularly current-user dependencies, password hashing and OAuth2 tokens; [OWASP API Security Top 10](https://api-security.owasp.org/) for broken object-level authorisation and other API risks.
 - **Recommended reading:** _Building Data Science Applications with FastAPI_, 2nd ed., Chapter 7, "Managing Authentication and Security in FastAPI", for concepts only.
 
-### 1.6 Async testing
+### 1.6 Asynchronous API testing
 
 - **Learning outcomes:** Choose between unit and integration tests and explain async fixtures, mocks, dependency overrides and test isolation.
 - **Applied exercises:** Build an async test suite covering services, endpoints, database interactions and failure cases. It should demonstrate repeatability, isolated state and confidence in behaviour rather than implementation details.
@@ -217,7 +217,7 @@ The context and MCP lessons include two optional books for deeper study:
 - **Required reading:** _Hypermodern Python Tooling_, Chapter 6, "Testing with pytest"; [FastAPI async tests](https://fastapi.tiangolo.com/advanced/async-tests/), [dependency overrides](https://fastapi.tiangolo.com/advanced/testing-dependencies/) and [pytest fixtures](https://docs.pytest.org/en/stable/how-to/fixtures.html).
 - **Recommended reading:** _Python Crash Course_, 3rd ed., Chapter 11, "Testing Your Code"; _Building Data Science Applications with FastAPI_, 2nd ed., Chapter 9, "Testing an API Asynchronously with pytest and HTTPX", for test-design ideas only. Use the current HTTPX ASGI transport example, not the book's old `AsyncClient(app=...)` form.
 
-### 1.7 Deployment basics
+### 1.7 Application packaging and deployment
 
 - **Learning outcomes:** Explain the runtime concerns that separate local code from a deployable service, including configuration, containers, processes and health checks.
 - **Applied exercises:** Build a container image from the locked `uv` project and run the API against a disposable PostgreSQL instance locally. Supply configuration at runtime, apply a migration deliberately and verify a health endpoint. Record the build and run commands. Actual cloud deployment is taught in Module 8.
@@ -226,7 +226,7 @@ The context and MCP lessons include two optional books for deeper study:
 - **Required reading:** [FastAPI deployment concepts](https://fastapi.tiangolo.com/deployment/concepts/) and [containers](https://fastapi.tiangolo.com/deployment/docker/); [`uv` Docker integration](https://docs.astral.sh/uv/guides/integration/docker/); [Pydantic settings](https://docs.pydantic.dev/latest/concepts/pydantic_settings/).
 - **Recommended reading:** _Designing Machine Learning Systems_, Chapter 10, "Infrastructure and Tooling for MLOps".
 
-## Module 2: AI engineering and LLM foundations
+## Module 2: Foundations of AI and large language models
 
 **Module aim:** Build a useful mental model of foundation models, then integrate them safely.
 
@@ -234,7 +234,7 @@ The context and MCP lessons include two optional books for deeper study:
 
 **Module practical assessment:** Build a provider-agnostic AI service with structured outputs, streaming and deliberate generation controls, plus a small multimodal prototype. Make a provisional hosted/local comparison; formal model-quality evaluation follows in Module 4.
 
-### 2.1 What AI engineering actually is
+### 2.1 The discipline of AI engineering
 
 - **Learning outcomes:** Distinguish AI engineering from model training and explain the application layers, feedback loops and tradeoffs around a foundation model.
 - **Applied exercises:** Create an annotated architecture diagram for one useful AI feature. Identify the user outcome, frontend, API, deterministic business logic, model-provider boundary and data sources. Explain which parts use a foundation model, which use ordinary code, and why the feature is worth building. Reuse the Module 1 API as an example; a new full-stack service is not required.
@@ -243,7 +243,7 @@ The context and MCP lessons include two optional books for deeper study:
 - **Required reading:** _AI Engineering: Building Applications with Foundation Models_, Chapter 1, "Introduction to Building AI Applications with Foundation Models".
 - **Recommended reading:** _Building LLMs for Production_, Chapter 1, "Introduction to LLMs".
 
-### 2.2 Tokens and tokenisation
+### 2.2 Tokenisation and context limits
 
 - **Learning outcomes:** Explain how tokenisation affects meaning, context limits, latency and cost across different model families.
 - **Applied exercises:** Adapt the chapter's tokenizer comparison into a small script or notebook. Compare token IDs, decoded pieces and counts for the same ordinary text, code, punctuation and multilingual text using two tokenizers. Calculate context usage for a stated limit; if adding a cost estimate, use the assigned current provider rates and record the model and date.
@@ -253,7 +253,7 @@ The context and MCP lessons include two optional books for deeper study:
 - **Recommended reading:** _Prompt Engineering for LLMs_, Chapter 2, "Understanding LLMs".
 - **Technical references:** Use the chosen provider's current tokeniser and pricing pages for any cost estimate; record the model, input/output token rates and date rather than copying an old price from a book.
 
-### 2.3 Embeddings
+### 2.3 Embedding representations
 
 - **Learning outcomes:** Explain token versus sentence embeddings, vector dimensionality, and static versus contextual representations. Introduce the idea of semantic similarity; calculate similarity and inspect its limitations in Module 5.
 - **Applied exercises:** Generate sentence embeddings for several short texts using the chapter's pretrained embedding-model example. Print the vector dimensions and distinguish one sentence vector from a sequence of token vectors. Explain static versus contextual token representations. Implement numerical similarity and ranking after the geometry and semantic-search lessons in Module 5.
@@ -262,7 +262,7 @@ The context and MCP lessons include two optional books for deeper study:
 - **Required reading:** _Hands-On Large Language Models_, Chapter 2, "Tokens and Embeddings".
 - **Recommended reading:** _Mathematics for Machine Learning_, Chapter 3, "Analytic Geometry".
 
-### 2.4 Transformer mental model
+### 2.4 Transformer architecture fundamentals
 
 - **Learning outcomes:** Trace a prompt through embeddings, attention blocks, logits and sampling, including the purpose of context and KV caching.
 - **Applied exercises:** Adapt the chapter's small pretrained-model example, or create an annotated visual trace if the model cannot run on the available hardware. Follow the prompt through token IDs, embeddings, transformer blocks, final logits and selection of the next token. Explain the role of the KV cache. Use existing model components; implementing attention or training a transformer is not required.
@@ -272,7 +272,7 @@ The context and MCP lessons include two optional books for deeper study:
 - **Recommended reading:** _Build a Large Language Model (From Scratch)_, Chapter 1, "Understanding Large Language Models".
 - **Technical references:** [Hugging Face Transformers model outputs](https://huggingface.co/docs/transformers/main_classes/output) and [causal language modelling](https://huggingface.co/docs/transformers/tasks/language_modeling) for a small model's logits; use the book to explain the internal blocks. If the model does not expose a KV cache in the chosen trace, explain that part conceptually.
 
-### 2.5 LLM APIs and provider abstractions
+### 2.5 Model provider APIs and abstractions
 
 - **Learning outcomes:** Explain how model-provider capabilities, limits, errors and usage metadata differ and what a stable abstraction should normalise.
 - **Applied exercises:** Build one typed interface with adapters for at least two providers. It should demonstrate provider substitution, consistent errors and normalised usage, latency and response metadata.
@@ -285,7 +285,7 @@ The context and MCP lessons include two optional books for deeper study:
   - Chapter 3, "LLMs in Practice".
 - **Technical references:** [OpenAI API documentation](https://platform.openai.com/docs/) and [Anthropic API documentation](https://docs.anthropic.com/).
 
-### 2.6 Structured outputs
+### 2.6 Structured model outputs
 
 - **Learning outcomes:** Distinguish syntactically valid JSON from schema-valid domain data and explain validation, retry and failure-handling strategies.
 - **Applied exercises:** Build a structured extraction endpoint whose responses are validated by Pydantic and tested with malformed outputs. It should demonstrate that model text is never trusted before validation.
@@ -295,7 +295,7 @@ The context and MCP lessons include two optional books for deeper study:
 - **Recommended reading:** _Building Data Science Applications with FastAPI_, 2nd ed., Chapter 4, "Managing Pydantic Data Models in FastAPI".
 - **Technical references:** [OpenAI structured outputs](https://platform.openai.com/docs/guides/structured-outputs).
 
-### 2.7 Streaming responses
+### 2.7 Streaming model responses
 
 - **Learning outcomes:** Explain streaming transport choices, partial output, cancellation, backpressure and mid-stream failure handling.
 - **Applied exercises:** Stream output from one model through FastAPI and consume it incrementally with HTTPX. Stop the consumer early and close the stream, then simulate an error after some output has arrived. Preserve the visible partial output and report that the response is incomplete rather than silently treating it as success. Automatic resume and a browser frontend are extensions.
@@ -329,7 +329,7 @@ The context and MCP lessons include two optional books for deeper study:
   - _Hands-On Large Language Models_, model selection and model openness sections.
 - **Technical references:** [Hugging Face local applications](https://huggingface.co/docs/hub/local-apps) and [using Hugging Face GGUF models with Ollama](https://huggingface.co/docs/hub/ollama).
 
-### 2.10 Multimodal AI: images and documents
+### 2.10 Multimodal models for images and documents
 
 - **Learning outcomes:** Explain how multimodal models represent and process text, images and documents. Distinguish image understanding from image generation. Explain how image resolution and quantity affect context usage and cost. Compare OCR, layout extraction and native multimodal processing. Identify failures involving diagrams, small text, tables and spatial relationships.
 - **Applied exercises:** Build a small notebook or script that asks questions about two supplied images using a multimodal model. Compare a text-only prompt with a text-plus-image prompt and record a correct observation, a missed detail and an uncertain answer. Reuse Pydantic to return an image ID, extracted fields and a limitations note. PDF parsing, OCR pipelines and page-level citation verification are extensions after the selected provider's document-processing guide.
@@ -369,7 +369,7 @@ This extension covers an area that the supplied books do not explore deeply.
 - **Required reading:** _Prompt Engineering for LLMs_, Chapter 4, "Designing LLM Applications".
 - **Recommended reading:** _AI Engineering: Building Applications with Foundation Models_, Chapter 1, "Introduction to Building AI Applications with Foundation Models".
 
-### 3.2 Prompt content
+### 3.2 Prompt content and context sources
 
 - **Learning outcomes:** Explain how static instructions, examples, retrieved evidence and dynamic data influence model behaviour and consume the context budget.
 - **Applied exercises:** Use 10-20 fixed inputs and a simple manual rubric. Compare a baseline prompt with variants that add explicit instructions, a few-shot example and a supplied evidence snippet, one at a time. Keep the model and decoding settings fixed, record token use and inspect output differences. Supply the evidence directly rather than building a retriever at this stage.
@@ -378,7 +378,7 @@ This extension covers an area that the supplied books do not explore deeply.
 - **Required reading:** _Prompt Engineering for LLMs_, Chapter 5, "Prompt Content".
 - **Recommended reading:** _Hands-On Large Language Models_, Chapter 6, "Prompt Engineering".
 
-### 3.3 Prompt structure
+### 3.3 Prompt structure and instruction hierarchy
 
 - **Learning outcomes:** Explain how hierarchy, delimiters, ordering and instruction precedence make prompts easier to maintain and test.
 - **Applied exercises:** Build a reusable prompt assembler with named instruction, example, evidence and user-input sections. Compare two section orders on the lesson 3.2 examples and inspect the assembled text. Keep data clearly labelled and separate from instructions, and save a versioned template. Explain that delimiters improve structure but do not enforce a security boundary.
@@ -387,7 +387,7 @@ This extension covers an area that the supplied books do not explore deeply.
 - **Required reading:** _Prompt Engineering for LLMs_, Chapter 6, "Assembling the Prompt".
 - **Recommended reading:** _AI Engineering: Building Applications with Foundation Models_, Chapter 5, "Prompt Engineering".
 
-### 3.4 Decomposition and verification
+### 3.4 Task decomposition and verification
 
 - **Learning outcomes:** Identify when a task should be split into controlled stages and explain how intermediate validation reduces compound failures.
 - **Applied exercises:** Build one task in both single-call and multi-stage forms. Compare both on the same small fixed example set from lesson 3.2, recording intermediate validation failures and outcomes with a simple rubric. Formal metrics and regression gates come in Module 4.
@@ -396,7 +396,7 @@ This extension covers an area that the supplied books do not explore deeply.
 - **Required reading:** _Hands-On Large Language Models_, Chapter 6, "Prompt Engineering".
 - **Recommended reading:** _Prompt Engineering for LLMs_, Chapter 5, "Prompt Content"; Chapter 6, "Assembling the Prompt"; Chapter 7, "Taming the Model".
 
-### 3.5 Prompt injection and security
+### 3.5 Prompt injection and trust boundaries
 
 - **Learning outcomes:** Explain prompt-injection threat models, trust boundaries and the limitations of prompt-only defences.
 - **Applied exercises:** Create direct and indirect injection examples for the Module 3 workflow, using a supplied untrusted text snippet rather than a live RAG system. Compare a baseline prompt with a defensive prompt and record which attacks still succeed. Enforce one allow/deny rule in application code and test that rule independently of model output. Do not treat a passing sample as proof that injection is impossible.
@@ -434,7 +434,7 @@ This extension covers an area that the supplied books do not explore deeply.
   - [Effective harnesses for long-running agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents).
   - [How Anthropic built its multi-agent research system](https://www.anthropic.com/engineering/multi-agent-research-system).
 
-## Module 4: Evaluation before complexity
+## Module 4: Evaluation of AI systems
 
 **Module aim:** Make quality measurable before adding retrieval, tools or agent autonomy.
 
@@ -451,7 +451,7 @@ This extension covers an area that the supplied books do not explore deeply.
 - **Required reading:** _AI Engineering: Building Applications with Foundation Models_, Chapter 3, "Evaluation Methodology".
 - **Recommended reading:** _Prompt Engineering for LLMs_, Chapter 10, "Evaluating LLM Applications".
 
-### 4.2 Evaluation datasets
+### 4.2 Evaluation dataset design
 
 - **Learning outcomes:** Explain how representativeness, annotation quality, metadata, leakage and slicing affect the credibility of an evaluation set.
 - **Applied exercises:** Build and version a curated golden dataset with normal, difficult and adversarial examples plus useful metadata. It should demonstrate coverage of meaningful user and failure scenarios.
@@ -460,7 +460,7 @@ This extension covers an area that the supplied books do not explore deeply.
 - **Required reading:** _AI Engineering: Building Applications with Foundation Models_, Chapter 4, "Evaluate AI Systems".
 - **Recommended reading:** _LLM Engineer's Handbook_, Chapter 7, "Evaluating LLMs".
 
-### 4.3 Deterministic evaluation
+### 4.3 Deterministic evaluation methods
 
 - **Learning outcomes:** Recognise outputs that ordinary program logic can evaluate and explain why deterministic checks should be preferred when available.
 - **Applied exercises:** Implement deterministic checks for three properties of the chosen task, such as schema validity, a required identifier and a calculation or business rule. Include correct outputs, malformed outputs and subtle failures. Distinguish exact equality from legitimate alternative wording; use ordinary code only for properties that code can actually decide.
@@ -469,7 +469,7 @@ This extension covers an area that the supplied books do not explore deeply.
 - **Required reading:** _Prompt Engineering for LLMs_, Chapter 10, "Evaluating LLM Applications".
 - **Recommended reading:** _Designing Machine Learning Systems_, Chapter 6, "Model Development and Offline Evaluation".
 
-### 4.4 LLM-as-judge
+### 4.4 Model-based evaluation
 
 - **Learning outcomes:** Explain the strengths, biases and failure modes of LLM judges, including rubric design, calibration and structured scoring.
 - **Applied exercises:** Build a rubric-based judge with structured scores for one task. Score a small human-labelled subset of the 4.2 dataset and report simple agreement plus examples of disagreement. Swap candidate-response order in a pairwise comparison to probe positional bias. Keep rubric, model and settings fixed, and identify cases requiring human review.
@@ -478,7 +478,7 @@ This extension covers an area that the supplied books do not explore deeply.
 - **Required reading:** _AI Engineering: Building Applications with Foundation Models_, Chapter 3, "Evaluation Methodology".
 - **Recommended reading:** _LLM Engineer's Handbook_, Chapter 7, "Evaluating LLMs".
 
-### 4.5 Model selection
+### 4.5 Comparative model evaluation and selection
 
 - **Learning outcomes:** Compare models as a multi-objective decision across quality, latency, cost, context and structured-output reliability.
 - **Applied exercises:** Build a benchmark that runs the same dataset across multiple models and produces a comparison report. It should demonstrate an evidence-based model choice rather than preference or benchmark reputation alone.
@@ -496,7 +496,7 @@ This extension covers an area that the supplied books do not explore deeply.
 - **Required reading:** _Prompt Engineering for LLMs_, Chapter 10, "Evaluating LLM Applications".
 - **Recommended reading:** _LLM Engineer's Handbook_, Chapter 11, "MLOps and LLMOps".
 
-## Module 5: Retrieval and RAG
+## Module 5: Information retrieval and retrieval-augmented generation
 
 **Module aim:** Build retrieval as an engineered system, not a vector-database demo.
 
@@ -523,7 +523,7 @@ This extension covers an area that the supplied books do not explore deeply.
 - **Recommended reading:** _LLM Engineer's Handbook_, Chapter 4, "RAG Feature Pipeline".
 - **Technical references:** [Sentence Transformers semantic search](https://www.sbert.net/examples/sentence_transformer/applications/semantic-search/README.html).
 
-### 5.3 Ingestion pipeline
+### 5.3 Retrieval ingestion pipelines
 
 - **Learning outcomes:** Explain the stages of a reliable ingestion pipeline, including cleaning, metadata, provenance, idempotency and reprocessing.
 - **Applied exercises:** Implement the chapter's extract-clean-chunk-embed-load sequence on a small document collection. Keep source/document IDs and metadata on the outputs, use stable chunk IDs for deduplication, and demonstrate that re-ingesting unchanged content does not add duplicate records. Show one rejected input with an identifiable error. Full checkpointed orchestration and recovery after arbitrary interruptions are extensions.
@@ -532,7 +532,7 @@ This extension covers an area that the supplied books do not explore deeply.
 - **Required reading:** _LLM Engineer's Handbook_, Chapter 4, "RAG Feature Pipeline".
 - **Recommended reading:** _Building LLMs for Production_, Chapter 8, "Indexes, Retrievers, and Data Preparation".
 
-### 5.4 Chunking strategies
+### 5.4 Document chunking strategies
 
 - **Learning outcomes:** Explain how chunk size, overlap and document structure affect retrieval relevance and context quality. Assess their effect on answer citations after lesson 5.9.
 - **Applied exercises:** Compare fixed-token chunks with the chapter's paragraph-first, token-limited splitting on the same documents and query labels from 5.2. Vary chunk size and one overlap setting, inspect boundaries and compare retrieval MAP. Record document/chunk IDs, but defer answer-citation scoring until generation is added in 5.9. Heading-aware, recursive and semantic splitting are optional after their library documentation.
@@ -542,7 +542,7 @@ This extension covers an area that the supplied books do not explore deeply.
 - **Recommended reading:** _Building LLMs for Production_, Chapter 8, "Indexes, Retrievers, and Data Preparation".
 - **Technical references:** [LlamaIndex node parsers](https://docs.llamaindex.ai/en/stable/module_guides/loading/node_parsers/) and [semantic splitter reference](https://docs.llamaindex.ai/en/stable/api_reference/node_parsers/semantic_splitter/) if implementing those extension strategies.
 
-### 5.5 Vector databases
+### 5.5 Vector databases and indexes
 
 - **Learning outcomes:** Explain vector indexing, approximate nearest-neighbour search, metadata filtering and the tradeoffs of common vector stores.
 - **Applied exercises:** Build a vector index with either PostgreSQL and pgvector or Qdrant, including metadata filters and index configuration. It should demonstrate correct persistence, filtered retrieval and understanding of recall-latency tradeoffs.
@@ -571,7 +571,7 @@ This extension covers an area that the supplied books do not explore deeply.
 - **Required reading:** _Building LLMs for Production_, Chapter 9, "Advanced RAG".
 - **Recommended reading:** _LLM Engineer's Handbook_, Chapter 9, "RAG Inference Pipeline".
 
-### 5.8 Reranking
+### 5.8 Retrieval reranking
 
 - **Learning outcomes:** Explain the role of rerankers, the difference between bi-encoders and cross-encoders, and their latency-quality tradeoff.
 - **Applied exercises:** Add a cross-encoder reranker to the existing retriever using the assigned retrieve-and-rerank example. Keep candidate count and final result count explicit, then compare MAP and measured latency before and after on the same labelled queries. Inspect changed rankings and decide whether the quality change justifies the extra stage, including when it does not.
@@ -599,7 +599,7 @@ This extension covers an area that the supplied books do not explore deeply.
 - **Required reading:** _Hands-On Large Language Models_, Chapter 8, "Semantic Search and Retrieval-Augmented Generation".
 - **Recommended reading:** _LLM Engineer's Handbook_, Chapter 7, "Evaluating LLMs".
 
-## Module 6: Tools, workflows and agents
+## Module 6: Tool-using AI systems and agents
 
 **Module aim:** Understand tools, control loops and state before adding agent complexity.
 
@@ -617,7 +617,7 @@ This extension covers an area that the supplied books do not explore deeply.
 - **Recommended reading:** _Building LLMs for Production_, Chapter 10, "Agents".
 - **Technical references:** [OpenAI function calling](https://platform.openai.com/docs/guides/function-calling) and [Anthropic tool use](https://docs.anthropic.com/en/docs/agents-and-tools/tool-use/overview).
 
-### 6.2 Designing good tools
+### 6.2 Tool interface design
 
 - **Learning outcomes:** Explain how tool granularity, descriptions, idempotency and predictable outputs affect an agent’s reliability.
 - **Applied exercises:** Define two or three narrow read-only tools with explicit names, descriptions, argument schemas and predictable result formats. Give the model tasks where only one tool is appropriate, then inspect its selection and arguments. Include an unknown tool and invalid argument in application-level tests. Compare with one overly broad tool description; state-changing retry semantics are not required here.
@@ -626,7 +626,7 @@ This extension covers an area that the supplied books do not explore deeply.
 - **Required reading:** _Prompt Engineering for LLMs_, Chapter 8, "Conversational Agency".
 - **Recommended reading:** [OpenAI API documentation](https://platform.openai.com/docs/) and [Anthropic API documentation](https://docs.anthropic.com/).
 
-### 6.3 Manual agent loop
+### 6.3 Agent control-loop implementation
 
 - **Learning outcomes:** Explain every step of a model-tool-result loop, including termination conditions, context updates and repeated calls.
 - **Applied exercises:** Implement the agent loop directly without a framework, including validation, maximum steps and trace capture. It should demonstrate understanding of the control flow that frameworks later abstract.
@@ -635,7 +635,7 @@ This extension covers an area that the supplied books do not explore deeply.
 - **Required reading:** _Prompt Engineering for LLMs_, Chapter 8, "Conversational Agency".
 - **Recommended reading:** _Hands-On Large Language Models_, Chapter 7, "Advanced Text Generation Techniques and Tools".
 
-### 6.4 Workflows versus agents
+### 6.4 Workflow and agent architectures
 
 - **Learning outcomes:** Distinguish deterministic workflows from autonomous agents and justify the simplest orchestration that satisfies the task.
 - **Applied exercises:** Implement a fixed two- or three-stage workflow and compare it with the manual agent loop from 6.3 on the same small set of business tasks using read-only tools. Record task success, steps, latency and token use. Explain whether variable tool choice helps enough to justify autonomy; do not require either approach to win.
@@ -644,7 +644,7 @@ This extension covers an area that the supplied books do not explore deeply.
 - **Required reading:** _Prompt Engineering for LLMs_, Chapter 9, "LLM Workflows".
 - **Recommended reading:** _AI Engineering: Building Applications with Foundation Models_, Chapter 6, "RAG and Agents".
 
-### 6.5 State
+### 6.5 Workflow state management
 
 - **Learning outcomes:** Explain explicit work-item state, task inputs and outputs, branching and bounded retries. Distinguish application state from conversation context; treat durable execution as a separate implementation topic.
 - **Applied exercises:** Represent the workflow's work item as explicit typed state containing the original input, intermediate outputs, current stage and attempt count. Pass that state between two tasks, add a success/failure branch, and show that a bounded retry retains the original inputs and terminates when its limit is reached. Draw the state transitions. Crash recovery and exactly-once side effects are not required by this reading.
@@ -653,7 +653,7 @@ This extension covers an area that the supplied books do not explore deeply.
 - **Required reading:** _Prompt Engineering for LLMs_, Chapter 9, "LLM Workflows".
 - **Recommended reading:** _Hands-On Large Language Models_, Chapter 7, "Advanced Text Generation Techniques and Tools".
 
-### 6.6 Planning and memory
+### 6.6 Agent planning and memory
 
 - **Learning outcomes:** Distinguish working context, durable memory, retrieved knowledge and plans, including their lifecycle and privacy implications.
 - **Applied exercises:** Generate a short plan for a read-only task, record the actual tool steps, and compare the plan with what happened. Keep current-task facts in context and reusable notes in a separate local store. Run a second task with and without retrieval of a relevant note, then delete that note and show it is no longer retrieved. Use synthetic information; a production user-memory or expiry-policy system is an extension.
@@ -662,7 +662,7 @@ This extension covers an area that the supplied books do not explore deeply.
 - **Required reading:** _AI Engineering: Building Applications with Foundation Models_, Chapter 6, "RAG and Agents".
 - **Recommended reading:** _Prompt Engineering for LLMs_, Chapter 8, "Conversational Agency"; Chapter 9, "LLM Workflows".
 
-### 6.7 Failure handling and human approval
+### 6.7 Agent reliability and human oversight
 
 - **Learning outcomes:** Classify planning, tool and efficiency failures, and explain how validation, timeouts, maximum steps and human approval constrain them. Distinguish these controls from distributed idempotency and compensating transactions.
 - **Applied exercises:** Create cases for an unknown tool, a valid tool with invalid arguments, a tool returning an incorrect result, and a plan that misses a stated constraint. Use the earlier timeout and maximum-step controls to stop stalled or runaway runs. Record failure category, tool-call validity, task success, steps and latency. For one simulated write action, require a code-enforced approval decision before execution, reusing the tool-approval guidance in the Chapter 8 reading from 6.1. Compensation and distributed duplicate-execution guarantees are extensions.
@@ -718,7 +718,7 @@ This extension covers an area that the supplied books do not explore deeply.
 
 **Module practical assessment:** Extend a portfolio project with documented nonfunctional requirements, evolvable schemas, background work and a recoverable data pipeline. It should demonstrate senior-level system-design tradeoffs.
 
-### 7.1 Nonfunctional requirements
+### 7.1 Non-functional requirements
 
 - **Learning outcomes:** Translate product expectations into measurable latency, reliability, scalability, maintainability and evolvability requirements.
 - **Applied exercises:** Build an architecture requirements document with service-level targets and verify one latency target with a small load test and one recovery target with a controlled failure. It should demonstrate that architecture choices follow measurable constraints.
@@ -728,7 +728,7 @@ This extension covers an area that the supplied books do not explore deeply.
 - **Recommended reading:** _Designing Machine Learning Systems_, Chapter 2, "Introduction to Machine Learning Systems Design".
 - **Technical references:** [k6 HTTP load testing](https://grafana.com/docs/k6/latest/using-k6/http-requests/) for the small load-test exercise.
 
-### 7.2 Data models
+### 7.2 Data modelling
 
 - **Learning outcomes:** Compare relational, document and event-oriented models and choose between them from access patterns and consistency needs.
 - **Applied exercises:** Build and justify the data model for the RAG or agent project, including entities, relationships, constraints and access patterns. It should demonstrate deliberate modelling rather than storage chosen by familiarity.
@@ -737,7 +737,7 @@ This extension covers an area that the supplied books do not explore deeply.
 - **Required reading:** _Designing Data-Intensive Applications_, 2nd ed., Chapter 3, "Data Models and Query Languages".
 - **Recommended reading:** _Designing Machine Learning Systems_, Chapter 3, "Data Engineering Fundamentals".
 
-### 7.3 Indexing and storage
+### 7.3 Indexing and storage systems
 
 - **Learning outcomes:** Explain how primary, secondary, full-text and vector indexes accelerate reads while adding storage and write costs.
 - **Applied exercises:** Add and benchmark indexes for the project’s main transactional and retrieval queries. It should demonstrate query-plan interpretation and evidence-based indexing decisions.
@@ -768,7 +768,7 @@ This extension covers an area that the supplied books do not explore deeply.
 - **Required reading:** _Designing Data-Intensive Applications_, 2nd ed., Chapter 11, "Batch Processing"; [Celery getting started](https://docs.celeryq.dev/en/stable/getting-started/), [tasks and retries](https://docs.celeryq.dev/en/stable/userguide/tasks.html), and [routing](https://docs.celeryq.dev/en/stable/userguide/routing.html).
 - **Recommended reading:** _Building Data Science Applications with FastAPI_, 2nd ed., Chapter 14, "Creating a Distributed Text-to-Image AI System". A failure queue/store is an application design choice; do not assume Celery creates a dead-letter queue automatically.
 
-### 7.6 Streams and events
+### 7.6 Stream and event processing
 
 - **Learning outcomes:** Explain event time, ordering, delivery guarantees and consumer state at a practical system-design level.
 - **Applied exercises:** Model a small event stream as an append-only sequence with event IDs, entity IDs, versions and event timestamps. Write a consumer that updates a local projection, then replay a duplicate and an older event and explain the chosen deduplication/order policy. Track a consumer offset and replay into a fresh projection. State the assumed delivery semantics; deploying Kafka or another broker is not required.
@@ -777,7 +777,7 @@ This extension covers an area that the supplied books do not explore deeply.
 - **Required reading:** _Designing Data-Intensive Applications_, 2nd ed., Chapter 12, "Stream Processing".
 - **Recommended reading:** _Designing Machine Learning Systems_, Chapter 3, "Data Engineering Fundamentals".
 
-### 7.7 Data pipelines
+### 7.7 Data pipeline architecture
 
 - **Learning outcomes:** Explain lineage, orchestration, validation, recovery and observability across a multi-stage data pipeline.
 - **Applied exercises:** Build an extract-transform-load script for two small input sources. Validate records during extraction, quarantine rejected records with a reason, then deduplicate, normalise and load accepted records into a file or database. Keep source IDs and input/output counts for each stage. Correct one rejected record and rerun the script using the safe-rerun approach from 7.5. A workflow orchestrator and checkpoint-level replay are extensions.
@@ -786,7 +786,7 @@ This extension covers an area that the supplied books do not explore deeply.
 - **Required reading:** _Designing Machine Learning Systems_, Chapter 3, "Data Engineering Fundamentals".
 - **Recommended reading:** _LLM Engineer's Handbook_, Chapter 3, "Data Engineering"; Chapter 4, "RAG Feature Pipeline".
 
-## Module 8: Production AI engineering and LLMOps
+## Module 8: Production AI engineering and LLM operations
 
 **Module aim:** Make one strong project reliable, observable, secure, responsible and economical.
 
@@ -794,7 +794,7 @@ This extension covers an area that the supplied books do not explore deeply.
 
 **Module practical assessment:** Harden the strongest project with deployment, telemetry, cost controls, guardrails and feedback capture. Add responsible-AI controls and automated security regression tests.
 
-### 8.1 Containers
+### 8.1 Containerised application delivery
 
 - **Learning outcomes:** Explain image layers, build reproducibility, runtime configuration and the security boundary created by a container.
 - **Applied exercises:** Build small, non-root production images for the API and worker with reproducible dependencies. They should demonstrate secure defaults, fast rebuilds and environment-independent execution.
@@ -803,7 +803,7 @@ This extension covers an area that the supplied books do not explore deeply.
 - **Required reading:** [Dockerfile concepts](https://docs.docker.com/build/concepts/dockerfile/), [multi-stage builds](https://docs.docker.com/build/building/multi-stage/), [FastAPI containers](https://fastapi.tiangolo.com/deployment/docker/) and [`uv` Docker integration](https://docs.astral.sh/uv/guides/integration/docker/).
 - **Recommended reading:** _Designing Machine Learning Systems_, Chapter 10, "Infrastructure and Tooling for MLOps". Reuse and harden the local container built in lesson 1.7.
 
-### 8.2 Cloud deployment
+### 8.2 Cloud deployment architectures
 
 - **Learning outcomes:** Compare real-time, asynchronous and batch deployment patterns and explain their scaling, networking and operational tradeoffs.
 - **Applied exercises:** Deploy the system’s API, worker and data dependencies using appropriate managed services. It should demonstrate secure networking, independent scaling and a documented deployment topology.
@@ -813,7 +813,7 @@ This extension covers an area that the supplied books do not explore deeply.
 - **Recommended reading:** _Designing Machine Learning Systems_, Chapter 7, "Model Deployment and Prediction Service"; Chapter 10, "Infrastructure and Tooling for MLOps".
 - **Technical references:** Before choosing services or running commands, read the chosen platform's current guides for web services, background workers, managed PostgreSQL, private networking and secret injection. If managed deployment is unavailable, document the topology and validate the API-worker-database flow locally without claiming a cloud deployment.
 
-### 8.3 CI/CD
+### 8.3 Continuous integration and delivery
 
 - **Learning outcomes:** Explain how tests, evaluations, artefacts, environments, rollout strategies and rollback controls form a safe delivery pipeline.
 - **Applied exercises:** Adapt the chapter's GitHub Actions pipeline to the locked `uv` project. Run linting, tests, the local regression command from 4.6 and an image build on a pull request. Introduce a failing test or evaluation to demonstrate a blocked quality gate, then fix it. Add deployment to the isolated environment from 8.2, using that platform's documented commands and versioned images. Rehearse rollback only after its platform-specific guide; CI/CD does not require a new training pipeline.
@@ -823,7 +823,7 @@ This extension covers an area that the supplied books do not explore deeply.
 - **Recommended reading:** _Designing Machine Learning Systems_, Chapter 10, "Infrastructure and Tooling for MLOps".
 - **Technical references:** [GitHub Actions documentation](https://docs.github.com/en/actions).
 
-### 8.4 Logging
+### 8.4 Structured application logging
 
 - **Learning outcomes:** Explain structured logging, severity, correlation identifiers and how to avoid leaking sensitive data.
 - **Applied exercises:** Add consistent request/job IDs and log levels to one API path and its background task. Log a small allowlist of structured fields such as operation, duration and error category, using the cookbook's contextual logging techniques. Verify that synthetic credentials and personal text are omitted or explicitly masked. Correlate one failure across the two log records; automatic detection of arbitrary PII is not required.
@@ -832,7 +832,7 @@ This extension covers an area that the supplied books do not explore deeply.
 - **Required reading:** [Python logging cookbook](https://docs.python.org/3/howto/logging-cookbook.html) for structured and contextual logging, and [OpenTelemetry log concepts](https://opentelemetry.io/docs/concepts/signals/logs/) for correlation across signals.
 - **Recommended reading:** _AI Engineering: Building Applications with Foundation Models_, Chapter 10, "AI Engineering Architecture and User Feedback". Use synthetic sensitive values in redaction tests rather than real credentials or personal data.
 
-### 8.5 Tracing and observability
+### 8.5 Distributed tracing and observability
 
 - **Learning outcomes:** Explain how metrics, logs and traces work together to diagnose model, retrieval, tool and infrastructure behaviour.
 - **Applied exercises:** Instrument one existing request path with spans for retrieval and the model call, and attach model name, token counts and error status when available. Add request-count and duration metrics using the assigned telemetry documentation. Inspect a trace and the corresponding metric change for a deliberately slow or failed request. A complete multi-service dashboard for every tool and cost dimension is an extension.
@@ -842,7 +842,7 @@ This extension covers an area that the supplied books do not explore deeply.
 - **Recommended reading:** _Designing Machine Learning Systems_, Chapter 8, "Data Distribution Shifts and Monitoring".
 - **Technical references:** [OpenTelemetry documentation](https://opentelemetry.io/docs/) and [Prometheus documentation](https://prometheus.io/docs/introduction/overview/).
 
-### 8.6 Latency and cost
+### 8.6 Performance and cost engineering
 
 - **Learning outcomes:** Identify the main latency and cost drivers in an AI request and explain which optimisation lever addresses each one.
 - **Applied exercises:** Benchmark one fixed workload, recording request latency, input/output token usage, quality and a dated cost estimate. Choose one optimisation explained in Chapter 9, such as a smaller model, shorter prompt or output limit, and repeat the workload. Report the observed quality, latency and cost changes, including regressions or no improvement. Explain which bottleneck the change was intended to address.
@@ -851,7 +851,7 @@ This extension covers an area that the supplied books do not explore deeply.
 - **Required reading:** _AI Engineering: Building Applications with Foundation Models_, Chapter 4, "Evaluate AI Systems"; Chapter 9, "Inference Optimization".
 - **Recommended reading:** _LLM Engineer's Handbook_, Chapter 8, "Inference Optimization".
 
-### 8.7 Caching and routing
+### 8.7 Caching and model routing
 
 - **Learning outcomes:** Explain cache keys, invalidation, semantic caching and capability-based model routing, including their correctness risks.
 - **Applied exercises:** Implement an exact-match response cache for one eligible synthetic task, with a key containing user scope, model, prompt version and input, plus explicit expiry or invalidation. Test a hit, miss, version change and cross-user lookup. Add a simple capability-based rule choosing between the provider adapters from 2.5, and report observed routing choices and cache-hit latency. Semantic caching and learned routing are extensions.
@@ -872,7 +872,7 @@ This extension covers an area that the supplied books do not explore deeply.
 - **Recommended reading:** _AI Engineering: Building Applications with Foundation Models_, Chapters 3 and 4.
 - **Technical references:** [NIST AI Risk Management Framework: Generative AI Profile](https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence).
 
-### 8.9 Guardrails
+### 8.9 AI application guardrails
 
 - **Learning outcomes:** Explain layered input, output and action guardrails, including what each layer can and cannot prevent.
 - **Applied exercises:** Add three explicit controls to the existing workflow: an input/schema or size check, an output-schema/business-rule check, and a code-enforced action-permission check. Test an allowed case and a rejected case at each boundary using the earlier evaluation harness. Include one case the checks cannot reliably decide and route it to review. Record latency or false-positive costs and avoid claiming complete protection.
@@ -896,7 +896,7 @@ This extension covers an area that the supplied books do not explore deeply.
   - [MITRE ATLAS](https://atlas.mitre.org/).
   - [MCP security best practices](https://modelcontextprotocol.io/docs/tutorials/security/security_best_practices).
 
-### 8.11 Feedback loops
+### 8.11 Production feedback systems
 
 - **Learning outcomes:** Explain how explicit and implicit feedback becomes labelled evaluation data without creating misleading or unsafe loops.
 - **Applied exercises:** Capture explicit ratings/corrections and one implicit signal for a few synthetic or consented interactions, linked by interaction and version IDs. Review which signals are actually evidence of quality and document their biases. Turn one reviewed failure into a labelled evaluation case in the Module 4 dataset; keep unreviewed feedback out of the accepted baseline. Automatic retraining is not required.
@@ -905,7 +905,7 @@ This extension covers an area that the supplied books do not explore deeply.
 - **Required reading:** _AI Engineering: Building Applications with Foundation Models_, Chapter 10, "AI Engineering Architecture and User Feedback".
 - **Recommended reading:** _Designing Machine Learning Systems_, Chapter 9, "Continual Learning and Test in Production".
 
-## Module 9: Core machine learning
+## Module 9: Machine learning foundations
 
 **Module aim:** Deepen your model and statistical intuition after learning to ship AI systems.
 
@@ -913,7 +913,7 @@ This extension covers an area that the supplied books do not explore deeply.
 
 **Module practical assessment:** Build a reproducible classical ML experiment from problem framing through evaluation. It should demonstrate correct data splitting, baselines, metric selection and error analysis.
 
-### 9.1 Machine learning landscape
+### 9.1 Machine learning paradigms and generalisation
 
 - **Learning outcomes:** Distinguish supervised, unsupervised and reinforcement learning and explain generalisation, overfitting, underfitting and common failure modes.
 - **Applied exercises:** Create a short decision notebook with three representative problem statements, one each for supervised, unsupervised and reinforcement learning. For each, identify the available observations, the feedback signal, a plausible baseline and a failure mode. Defer model training and the end-to-end experiment to Lesson 9.2.
@@ -922,7 +922,7 @@ This extension covers an area that the supplied books do not explore deeply.
 - **Required reading:** _Hands-On Machine Learning with Scikit-Learn and PyTorch_, Chapter 1, "The Machine Learning Landscape".
 - **Recommended reading:** _Machine Learning with PyTorch and Scikit-Learn_, Chapter 1, "Giving Computers the Ability to Learn from Data".
 
-### 9.2 End-to-end ML workflow
+### 9.2 End-to-end machine learning workflow
 
 - **Learning outcomes:** Explain problem framing, data splitting, leakage prevention, baselines, training and validation as one connected workflow.
 - **Applied exercises:** Build an end-to-end tabular ML project with reproducible preprocessing, a baseline, training, validation and a held-out test. It should demonstrate a trustworthy process rather than only a high score.
@@ -949,7 +949,7 @@ This extension covers an area that the supplied books do not explore deeply.
 - **Required reading:** _Hands-On Machine Learning with Scikit-Learn and PyTorch_, Chapter 4, "Training Models".
 - **Recommended reading:** _Mathematics for Machine Learning_, Chapter 7, "Continuous Optimization".
 
-### 9.5 Probability
+### 9.5 Probability for machine learning
 
 - **Learning outcomes:** Explain conditional probability, Bayes’ rule, expectation, variance and Gaussian distributions as tools for reasoning about uncertainty.
 - **Applied exercises:** Start with a small joint-probability table and compute marginals, conditional probabilities and one posterior using Bayes' rule. Calculate expectation and variance for a discrete distribution, then draw samples from a Gaussian and compare empirical mean/variance with the stated parameters. Explain which results are exact and which are finite-sample estimates. A full Bayesian inference engine is not required.
@@ -958,7 +958,7 @@ This extension covers an area that the supplied books do not explore deeply.
 - **Required reading:** _Mathematics for Machine Learning_, Chapter 6, "Probability and Distributions".
 - **Recommended reading:** _An Introduction to Statistical Learning with Applications in Python_, Chapter 2, "Statistical Learning".
 
-## Module 10: Deep learning, PyTorch and transformers
+## Module 10: Deep learning and transformer architectures
 
 **Module aim:** Understand how the models behind the APIs work without turning the roadmap into a research detour.
 
@@ -975,7 +975,7 @@ This extension covers an area that the supplied books do not explore deeply.
 - **Required reading:** _Hands-On Machine Learning with Scikit-Learn and PyTorch_, Chapter 9, "Introduction to Artificial Neural Networks".
 - **Recommended reading:** _Mathematics for Machine Learning_, Chapter 5, "Vector Calculus".
 
-### 10.2 PyTorch
+### 10.2 PyTorch fundamentals
 
 - **Learning outcomes:** Explain tensor shapes, autograd, modules, datasets, DataLoaders and train/evaluation modes in PyTorch.
 - **Applied exercises:** Build a PyTorch classifier with a custom dataset, model module, training loop and saved checkpoint. It should demonstrate correct tensor handling and separation of training from evaluation.
@@ -985,7 +985,7 @@ This extension covers an area that the supplied books do not explore deeply.
 - **Recommended reading:** _Build a Large Language Model (From Scratch)_, Appendix A, "Introduction to PyTorch".
 - **Technical references:** [PyTorch documentation](https://docs.pytorch.org/docs/stable/index.html).
 
-### 10.3 Training neural networks
+### 10.3 Neural network training
 
 - **Learning outcomes:** Explain batching, optimisation, validation, regularisation, checkpoints and the signals of underfitting or overfitting.
 - **Applied exercises:** Build a controlled training experiment comparing at least two optimisation or regularisation choices. It should demonstrate interpretation of learning curves and selection based on validation evidence.
@@ -1003,7 +1003,7 @@ This extension covers an area that the supplied books do not explore deeply.
 - **Required reading:** _Hands-On Machine Learning with Scikit-Learn and PyTorch_, Chapter 15, "Transformers for Natural Language Processing and Chatbots".
 - **Recommended reading:** _Hands-On Large Language Models_, Chapter 3, "Looking Inside Large Language Models".
 
-### 10.5 Attention
+### 10.5 Attention mechanisms
 
 - **Learning outcomes:** Explain queries, keys, values, scaled dot-product attention, causal masking and multi-head attention.
 - **Applied exercises:** Implement causal multi-head attention and test masking and output shapes. It should demonstrate mathematical understanding of attention rather than use of a high-level transformer component.
@@ -1012,7 +1012,7 @@ This extension covers an area that the supplied books do not explore deeply.
 - **Required reading:** _Build a Large Language Model (From Scratch)_, Chapter 3, "Coding Attention Mechanisms".
 - **Recommended reading:** _Hands-On Machine Learning with Scikit-Learn and PyTorch_, Chapter 15, "Transformers for Natural Language Processing and Chatbots".
 
-### 10.6 Build a tiny GPT
+### 10.6 Compact GPT implementation
 
 - **Learning outcomes:** Explain how tokenisation, embeddings, transformer blocks, language-model loss and autoregressive generation form a GPT.
 - **Applied exercises:** Assemble a tiny GPT using the transformer blocks from Chapter 4 and the attention from 10.5. Prepare short token sequences with the tokenizer already used in Module 2 and the DataLoader skills from 10.2; make next-token targets by shifting the sequence. Follow Chapter 5 for cross-entropy loss, a short training run, generation and saving/reloading weights. Plot training/validation loss and compare a generated sample before and after training without expecting useful language quality.
@@ -1021,7 +1021,7 @@ This extension covers an area that the supplied books do not explore deeply.
 - **Required reading:** _Build a Large Language Model (From Scratch)_, Chapter 4, "Implementing a GPT Model from Scratch to Generate Text", and Chapter 5, "Pretraining on Unlabeled Data", for loss, the training loop, checkpointing and generation.
 - **Recommended reading:** _Hands-On Large Language Models_, Chapter 3, "Looking Inside Large Language Models".
 
-## Module 11: Fine-tuning and local inference
+## Module 11: Model adaptation and local inference
 
 **Module aim:** Know when model adaptation is justified and how serving tradeoffs work.
 
@@ -1029,7 +1029,7 @@ This extension covers an area that the supplied books do not explore deeply.
 
 **Module practical assessment:** Run a measured parameter-efficient fine-tuning experiment and design a local inference architecture. Compare results honestly with a baseline, including regressions or no improvement, and record explicit quality, memory, latency and cost tradeoffs.
 
-### 11.1 When to fine-tune
+### 11.1 Fine-tuning decision criteria
 
 - **Learning outcomes:** Decide when fine-tuning is justified instead of prompting, retrieval, more context or a stronger base model.
 - **Applied exercises:** Build a decision record for a real use case, including baseline evaluations for prompting and retrieval alternatives. It should demonstrate that fine-tuning follows evidence rather than novelty.
@@ -1038,7 +1038,7 @@ This extension covers an area that the supplied books do not explore deeply.
 - **Required reading:** _AI Engineering: Building Applications with Foundation Models_, Chapter 7, "Finetuning".
 - **Recommended reading:** _LLM Engineer's Handbook_, Chapter 5, "Supervised Fine-Tuning".
 
-### 11.2 Dataset engineering
+### 11.2 Fine-tuning dataset engineering
 
 - **Learning outcomes:** Explain how data quality, formatting, distribution, privacy and train-validation splits determine fine-tuning outcomes.
 - **Applied exercises:** Build a versioned dataset pipeline that validates, deduplicates, formats and splits examples. It should demonstrate provenance, quality checks and prevention of train-evaluation leakage.
@@ -1056,7 +1056,7 @@ This extension covers an area that the supplied books do not explore deeply.
 - **Required reading:** _Hands-On Large Language Models_, Chapter 12, "Fine-Tuning Generation Models".
 - **Recommended reading:** _Build a Large Language Model (From Scratch)_, Chapter 7, "Fine-Tuning to Follow Instructions".
 
-### 11.4 LoRA and QLoRA
+### 11.4 Parameter-efficient fine-tuning with LoRA and QLoRA
 
 - **Learning outcomes:** Explain low-rank adapters and how LoRA and QLoRA reduce memory and compute at the cost of constrained adaptation.
 - **Applied exercises:** Attach LoRA adapters to a small model and inspect which parameters are trainable versus frozen. Compare trainable-parameter counts for two ranks, then train one configuration on the 11.3 task and measure runtime, memory when available, and held-out quality. Explain the QLoRA memory tradeoff; run its quantised variant only after the linked quantisation guide and on supported hardware.
@@ -1076,7 +1076,7 @@ This extension covers an area that the supplied books do not explore deeply.
 - **Recommended reading:** _Building LLMs for Production_, Chapter 12, "Deployment and Optimization".
 - **Technical references:** [Hugging Face bitsandbytes documentation](https://huggingface.co/docs/transformers/quantization/bitsandbytes).
 
-### 11.6 Inference architecture
+### 11.6 Model inference architecture
 
 - **Learning outcomes:** Explain prefill, decoding, KV caching, batching, throughput, latency and autoscaling in a model-serving system.
 - **Applied exercises:** Choose one serving path described in the assigned sources, such as vLLM or the book's inference endpoint, and expose a small model behind the existing provider interface. With fixed prompts, measure request latency and throughput at two concurrency levels, note the configured batching/precision and inspect an overload or timeout result. Explain the deployment tradeoffs and reuse Module 8 configuration/logging controls. If no compatible runtime is available, produce the topology and request-flow design and explicitly leave runtime benchmarking incomplete.
@@ -1086,7 +1086,7 @@ This extension covers an area that the supplied books do not explore deeply.
 - **Recommended reading:** _AI Engineering: Building Applications with Foundation Models_, Chapter 9, "Inference Optimization".
 - **Technical references:** [vLLM documentation](https://docs.vllm.ai/).
 
-## Module 12: Capstone AI product
+## Module 12: Capstone in AI engineering
 
 **Module aim:** Combine the roadmap's skills into one credible, explainable product.
 
@@ -1094,7 +1094,7 @@ This extension covers an area that the supplied books do not explore deeply.
 
 **Module practical assessment:** Build a portfolio-ready full-stack AI product with a real user workflow, RAG or tools, evaluation, CI/CD, observability, security and clear documentation. It should demonstrate end-to-end ownership and measured engineering maturity.
 
-### 12.1 Product and architecture
+### 12.1 Product definition and architecture
 
 - **Learning outcomes:** Frame an AI product around a real user outcome, explicit constraints, measurable success and defensible architecture decisions.
 - **Applied exercises:** Build a product brief, architecture document and evaluation plan before implementation. They should demonstrate clear scope, user value, risks, alternatives and measurable acceptance criteria.
@@ -1113,7 +1113,7 @@ This extension covers an area that the supplied books do not explore deeply.
   - _Designing Machine Learning Systems_, Chapter 3, "Data Engineering Fundamentals".
   - _Designing Machine Learning Systems_, Chapter 10, "Infrastructure and Tooling for MLOps".
 
-### 12.2 Full-stack implementation
+### 12.2 Full-stack AI system implementation
 
 - **Learning outcomes:** Explain how the frontend, API, data, retrieval, tools and model layers interact and fail as one complete product.
 - **Applied exercises:** Implement one complete user workflow from the 12.1 brief using Next.js, the existing FastAPI/authentication/PostgreSQL components, a provider adapter and either RAG or tools. Reuse the selected earlier project instead of implementing every AI pattern. Demonstrate successful, loading, empty and failed states across the frontend/API boundary. Add a model router or both RAG and tools only if the brief calls for them.
@@ -1123,7 +1123,7 @@ This extension covers an area that the supplied books do not explore deeply.
 - **Recommended reading:** [Next.js documentation](https://nextjs.org/docs) and [FastAPI documentation](https://fastapi.tiangolo.com/).
 - **Technical references:** [Next.js documentation](https://nextjs.org/docs), [FastAPI documentation](https://fastapi.tiangolo.com/) and [PostgreSQL documentation](https://www.postgresql.org/docs/).
 
-### 12.3 Evaluation and operations
+### 12.3 Product evaluation and operations
 
 - **Learning outcomes:** Explain the evidence required to call an AI product reliable, observable, secure, deployable and maintainable.
 - **Applied exercises:** Add automated evaluations appropriate to the workflow chosen in 12.2: for RAG, evaluate retrieval and grounded generation; for a tools-based workflow, evaluate task success, tool selection, argument validity and controlled failure handling. Apply both sets of checks if the product uses both. Add CI/CD, deployment, logs, traces, cost monitoring, security controls and feedback capture using the Module 8 components. Demonstrate that product quality is measurable and operational failures are diagnosable.
@@ -1132,7 +1132,7 @@ This extension covers an area that the supplied books do not explore deeply.
 - **Required reading:** Revisit the evaluation harness from Module 4. For a RAG product, revisit lesson 5.10 on retrieval and generation evaluation; for a tools-based product, revisit lessons 6.3 and 6.7 on task success, tool-use checks and failure handling. Revisit both when both capabilities are present. For either product, revisit the Module 8 lessons on CI/CD, logging, tracing, cost, guardrails and feedback. Use each lesson's current official documentation for its component.
 - **Recommended reading:** _AI Engineering: Building Applications with Foundation Models_, Chapter 10, "AI Engineering Architecture and User Feedback".
 
-### 12.4 Portfolio narrative
+### 12.4 Technical portfolio and case study
 
 - **Learning outcomes:** Present technical decisions, alternatives, failures and measured results as a credible engineering narrative.
 - **Applied exercises:** Write `README.md`, `ARCHITECTURE.md`, `EVALUATION.md` and `SECURITY.md` for the capstone, drawing on its actual diagrams, decisions, tests, evaluations and traces. Explain alternatives considered, a failure investigated, measured outcomes and remaining limitations. Cross-link the evidence and make the case study ready to share; do not replace missing measurements with invented results.
