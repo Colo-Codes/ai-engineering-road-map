@@ -2,7 +2,8 @@ import type { ExerciseChecklist, Phase, Topic } from '../../types'
 
 export type ExerciseGroupData = {
   phase: Phase
-  rows: Array<{ topic: Topic; exercise: string }>
+  // `index` is the lesson's position in its module, for its "Lesson 1.6" label.
+  rows: Array<{ topic: Topic; index: number; exercise: string }>
   done: number
 }
 
@@ -19,7 +20,7 @@ export function exerciseItemId(topicId: string) {
 export function buildExerciseGroups(phases: Phase[], checklist: ExerciseChecklist): ExerciseGroupData[] {
   return phases
     .map((phase) => {
-      const rows = phase.topics.flatMap((topic) => topic.appliedExercises ? [{ topic, exercise: topic.appliedExercises }] : [])
+      const rows = phase.topics.flatMap((topic, index) => topic.appliedExercises ? [{ topic, index, exercise: topic.appliedExercises }] : [])
       return { phase, rows, done: rows.filter(({ topic }) => checklist[topic.id] === 'complete').length }
     })
     .filter(({ rows }) => rows.length)
